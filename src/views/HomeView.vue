@@ -234,7 +234,6 @@ export default {
         }
 
         const k = j.reduce((acc, item) => {
-          console.log(item);
           acc = item?.status === 1 ? acc + 1 : acc;
           return acc;
         }, 0);
