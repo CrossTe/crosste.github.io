@@ -1,0 +1,973 @@
+<template>
+  <main>
+    <header class="c-header">
+      <div>
+        <Button @click="showHelp = true">?</Button>
+      </div>
+      CrossTe #{{ currDay }}
+      <CountDown v-show="false" @timeout="zerate" />
+      <div>
+        <Button @click="showStats = true"><IconStats /></Button>
+      </div>
+    </header>
+
+    <div class="c-board">
+      <div class="c-input-group">
+        <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
+        <div class="c-input c-input__label">1</div>
+      </div>
+      <div class="c-input-group">
+        <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
+        <input
+          readonly
+          :id="`i-0`"
+          :ref="`i-0`"
+          class="c-input c-input--visible"
+          @click="putFocus(0)"
+          :class="getStatusColor(0, 0)"
+        />
+      </div>
+      <div class="c-input-group">
+        <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
+        <input
+          readonly
+          :id="`i-1`"
+          :ref="`i-1`"
+          class="c-input c-input--visible"
+          @click="putFocus(1)"
+          :class="getStatusColor(0, 1)"
+        />
+      </div>
+      <div class="c-input-group">
+        <div class="c-input c-input__label">2</div>
+        <input
+          v-for="i in 5"
+          :ref="i === 2 ? 'i-2' : `i-${i + 4}`"
+          :id="i === 2 ? 'i-2' : `i-${i + 4}`"
+          :key="i"
+          :class="getStatusColor(1, i - 1)"
+          class="c-input c-input--visible"
+          readonly
+          @click="putFocus(i === 2 ? 2 : i + 4)"
+        />
+      </div>
+      <div class="c-input-group">
+        <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
+        <input
+          readonly
+          id="i-3"
+          ref="i-3"
+          class="c-input c-input--visible"
+          @click="putFocus(3)"
+          :class="getStatusColor(0, 3)"
+        />
+      </div>
+      <div class="c-input-group">
+        <div class="c-input c-input--hide" />
+        <div class="c-input c-input__label">3</div>
+        <input
+          readonly
+          id="i-4"
+          ref="i-4"
+          class="c-input c-input--visible"
+          @click="putFocus(4)"
+          :class="getStatusColor(0, 4)"
+        />
+        <input
+          readonly
+          :id="`i-${i + 10}`"
+          :ref="`i-${i + 10}`"
+          @click="putFocus(i + 10)"
+          v-for="i in 4"
+          :key="`3-${i}`"
+          class="c-input c-input--visible"
+          :class="getStatusColor(2, i)"
+        />
+      </div>
+    </div>
+    <div class="c-keyboard">
+      <div class="c-past" v-for="t in tries" :key="t" v-html="t" />
+      <Keyboard :keyboard="keyboard" @keyboard="handleKey" />
+    </div>
+    <InstructionsModal
+      v-if="showHelp"
+      @close="showHelp = false"
+      title="Instruções"
+    />
+
+    <Modal
+      v-if="showEndGame || showStats"
+      title="Progresso"
+      @close="closeStats"
+    >
+      <div class="c-result__header">
+        <div class="c-status">
+          <span class="c-status__number">{{ stats.games }}</span>
+          <span>Jogos</span>
+        </div>
+        <div class="c-status">
+          <span class="c-status__number">{{ winsPercentage }}%</span>
+          <span>de vitórias</span>
+        </div>
+      </div>
+      <p style="margin-top: 8px; text-align: center">
+        Distribuição de tentativas
+      </p>
+      <ol>
+        <li v-for="i in 8" :key="i">
+          <ProgressBar
+            :value="stats?.history?.[i] || 0"
+            :total="stats.games || 0"
+          />
+        </li>
+      </ol>
+      <ul>
+        <li>
+          <ProgressBar
+            :value="stats?.history?.[9] || 0"
+            :total="stats.games || 0"
+          />
+        </li>
+      </ul>
+      <div v-if="endGame && !won">
+        <p>Você perdeu! As palavras eram:</p>
+        <p>{{ word1 }} - {{ word2 }} - {{ word3 }}</p>
+      </div>
+      <div v-if="endGame && won">
+        <p>Você ganhou hoje!</p>
+      </div>
+      <div
+        style="
+          margin-top: 16px;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          justify-content: space-between;
+        "
+      >
+        <div style="font-size: 11px; text-align: center">
+          Próximo jogo em: <CountDown />
+        </div>
+        <Button v-if="endGame" @click="share"> Compartilhar </Button>
+      </div>
+    </Modal>
+  </main>
+</template>
+<script>
+import words from "@/data/words.js";
+import Keyboard from "@/components/Keyboard.vue";
+import Modal from "@/components/Modal/Modal.vue";
+import Button from "@/components/Button/Button.vue";
+import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
+import CountDown from "@/components/CountDown.vue";
+import IconStats from "@/components/icons/IconStats.vue";
+import InstructionsModal from "@/components/InstructionsModal.vue";
+export default {
+  name: "HomeView",
+  components: {
+    Keyboard,
+    Modal,
+    Button,
+    ProgressBar,
+    CountDown,
+    IconStats,
+    InstructionsModal,
+  },
+  data() {
+    return {
+      nextIndex: null,
+      previousIndex: null,
+      fromIndex: null,
+      wordOne: {
+        letters: [],
+      },
+      wordTwo: {
+        letters: [],
+      },
+      wordThree: {
+        letters: [],
+      },
+      keyboard: this.initializeKeyboard(),
+      tries: [],
+      correctMap: [],
+      showHelp: false,
+      endGame: false,
+      showEndGame: false,
+      showStats: false,
+      startDay: 0,
+      stats: { games: 0, history: {}, wins: 0 },
+    };
+  },
+  computed: {
+    currDay() {
+      const date1 = new Date("03/11/2022");
+      const date2 = new Date();
+
+      // To calculate the time difference of two dates
+      const Difference_In_Time = date2.getTime() - date1.getTime();
+      // To calculate the no. of days between two dates
+      return Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
+    },
+    word2() {
+      return words[this.getSecondWordIndex()];
+    },
+    first() {
+      return words.filter((i) => i[2] === this.word2[1]);
+    },
+    word1() {
+      return this.first[this.getOtherWordsIndex("first")];
+    },
+    third() {
+      return words.filter((i) => i[0] === this.word1[4]);
+    },
+    word3() {
+      return this.third[this.getOtherWordsIndex("third")];
+    },
+    won() {
+      let status = true;
+      this.correctMap.forEach((j) => {
+        if (j.length < 5) {
+          status = false;
+        }
+
+        const k = j.reduce((acc, item) => {
+          console.log(item);
+          acc = item?.status === 1 ? acc + 1 : acc;
+          return acc;
+        }, 0);
+
+        if (k < 5) {
+          status = false;
+        }
+      });
+
+      return status;
+    },
+    winsPercentage() {
+      return ((this.stats.wins || 0) * 100) / (this.stats.games || 1);
+    },
+  },
+  created() {
+    console.log("Um salve para o grupo Praia & Hipocrisia!");
+    this.create();
+  },
+  mounted() {
+    this.mount();
+  },
+  methods: {
+    getStatusColor(line, column) {
+      return {
+        "c-input--correct": this.correctMap?.[line]?.[column]?.status === 1,
+        // "c-input--present": this.correctMap?.[line]?.[column]?.status === 2,
+        // "c-input--absent": this.correctMap?.[line]?.[column]?.status === 3,
+      };
+    },
+    zerate() {
+      [...document.getElementsByClassName("c-input--visible")].forEach(
+        (i) => (i.value = "")
+      );
+      this.startDay = this.currDay;
+      this.tries = [];
+      this.keyboard = this.initializeKeyboard();
+      this.correctMap = [];
+      this.wordOne = {
+        letters: [],
+      };
+      this.wordTwo = {
+        letters: [],
+      };
+      this.wordThree = {
+        letters: [],
+      };
+      this.endGame = false;
+
+      this.showEndGame = this.endGame;
+      this.showStats = false;
+
+      this.mount();
+      this.$toast.success("NOVO JOGO!");
+    },
+    mount() {
+      this.startDay = this.currDay;
+      if (this.correctMap.length) {
+        this.correctMap.forEach((item, index) => {
+          item.forEach((letter, i) => {
+            let position = index === 0 ? i : index === 1 ? i + 5 : i + 10;
+            if (position === 6) {
+              position = 2;
+            }
+            if (position === 10) {
+              position = 4;
+            }
+            if (letter?.status === 1) {
+              const ref = this.$refs[`i-${position}`];
+              const current = Array.isArray(ref) ? ref[0] : ref;
+              current.value = letter.letter;
+            }
+          });
+        });
+      }
+      this.updateNextIndex(-1);
+      this.putFocus(this.nextIndex);
+    },
+    create() {
+      const raw = localStorage.getItem("cross");
+      let cross = null;
+      if (raw) {
+        cross = JSON.parse(raw);
+
+        // Get currennt Game details
+        if (cross.state.day === this.currDay) {
+          this.tries = cross.state?.tries || [];
+          this.keyboard = cross.state?.keyboard || this.initializeKeyboard();
+          this.correctMap = cross.state?.correctMap || [];
+          this.wordOne = cross.state?.wordOne || {
+            letters: [],
+          };
+          this.wordTwo = cross.state?.wordTwo || {
+            letters: [],
+          };
+          this.wordThree = cross.state?.wordThree || {
+            letters: [],
+          };
+          this.endGame = cross.state?.endGame || false;
+
+          this.showEndGame = this.endGame;
+          this.showStats = false;
+        }
+      } else {
+        this.showHelp = true;
+      }
+
+      if (!raw || !cross || cross.state.day !== this.currDay) {
+        cross = {
+          ...cross,
+          state: {
+            day: this.currDay,
+          },
+          stats: {
+            ...(cross?.stats || {}),
+            games: (cross?.stats?.games || 0) + 1,
+          },
+        };
+
+        localStorage.setItem("cross", JSON.stringify(cross));
+      }
+      this.stats = cross?.stats || this.stats;
+    },
+    closeStats() {
+      this.showEndGame = false;
+      this.showStats = false;
+    },
+    latenize(str) {
+      if (str) {
+        const map = {
+          a: "á|à|ã|â|À|Á|Ã|Â",
+          e: "é|è|ê|É|È|Ê",
+          i: "í|ì|î|Í|Ì|Î",
+          o: "ó|ò|ô|õ|Ó|Ò|Ô|Õ",
+          u: "ú|ù|û|ü|Ú|Ù|Û|Ü",
+          c: "ç|Ç",
+          n: "ñ|Ñ",
+        };
+
+        str = str.toLowerCase();
+
+        for (const pattern in map) {
+          str = str.replace(new RegExp(map[pattern], "g"), pattern);
+        }
+      }
+
+      return str;
+    },
+    share() {
+      let art = `
+⬛${this.correctMap?.[0]?.[0]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
+⬛${this.correctMap?.[0]?.[1]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
+${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
+        this.correctMap?.[0]?.[2]?.status === 1 ? "🟩" : "⬜"
+      }${this.correctMap?.[1]?.[2]?.status === 1 ? "🟩" : "⬜"}${
+        this.correctMap?.[1]?.[3]?.status === 1 ? "🟩" : "⬜"
+      }${this.correctMap?.[1]?.[4]?.status === 1 ? "🟩" : "⬜"}⬛
+⬛${this.correctMap?.[0]?.[3]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
+⬛${this.correctMap?.[0]?.[4]?.status === 1 ? "🟩" : "⬜"}${
+        this.correctMap?.[2]?.[1]?.status === 1 ? "🟩" : "⬜"
+      }${this.correctMap?.[2]?.[2]?.status === 1 ? "🟩" : "⬜"}${
+        this.correctMap?.[2]?.[3]?.status === 1 ? "🟩" : "⬜"
+      }${this.correctMap?.[2]?.[4]?.status === 1 ? "🟩" : "⬜"}`;
+
+      const title = `Joguei CrossTe #${this.currDay}`;
+      const text = this.won
+        ? `Joguei crosste.github.io #${this.currDay}\n${art}\n\nVenci com ${
+            this.tries.length
+          } ${this.tries.length === 1 ? "tentativa" : "tentativas"}!`
+        : `Joguei crosste.github.io #${this.currDay}\n${art}\n\n Perdi, mas você pode ganhar!`;
+      const url = "crosste.github.io";
+      if (navigator.share) {
+        navigator
+          .share({
+            title,
+            text,
+          })
+          .then(() => {
+            console.log("Thanks for sharing!");
+          })
+          .catch(console.error);
+      } else {
+        this.$copyText(`${text}\n\n${url}`)
+          .then(() => {
+            this.$toast.success("Resultado copiado!");
+          })
+          .catch(() => {
+            this.$toast.erro("Não conseguimos copiar!");
+          });
+      }
+    },
+    initializeKeyboard() {
+      const keys = "QWERTYUIOPASDFGHJKL§ZXCVBNM".split("").map((key) => {
+        if (key === "§") return { key: "DELETE" };
+        return { key, evaluation: null };
+      });
+      keys.push({ key: "ENTER" });
+      return keys;
+    },
+    putFocus(index) {
+      [...document.getElementsByClassName("c-input--visible")].forEach((i) =>
+        i.classList.remove("c-input--focus")
+      );
+      const ref = this.$refs[`i-${index}`];
+      const current = Array.isArray(ref) ? ref[0] : ref;
+
+      if (!current.classList.contains("c-input--focus")) {
+        current.classList.add("c-input--focus");
+        current.focus();
+      }
+    },
+    mountWord(kind, index, letter) {
+      let word = 1;
+      let key = index;
+      switch (kind) {
+        case 1:
+          word = "wordOne";
+          break;
+        case 2:
+          word = "wordTwo";
+          key = key - 5;
+          break;
+        case 3:
+          key = key - 10;
+
+          word = "wordThree";
+          break;
+      }
+
+      this[word].letters[key] = { letter, status: null };
+      // Word Two cross word One
+      if (index === 2) {
+        this.wordTwo.letters[1] = { letter, status: null };
+      }
+
+      if (index === 4) {
+        this.wordThree.letters[0] = { letter, status: null };
+      }
+    },
+    updateNextIndex(i) {
+      this.nextIndex = i === 5 ? 7 : i + 1;
+
+      switch (i) {
+        case 1:
+          // Cross between word one and word two
+          this.nextIndex = this.correctMap?.[1]?.[1]?.status === 1 ? 3 : 2;
+          break;
+        case 2:
+          // Interception point between one and two
+          this.nextIndex = this.previousIndex === 5 ? 7 : 3;
+          break;
+        case 4:
+          // Interception point between one and three, and last point of word one
+          this.nextIndex =
+            this.previousIndex === null || this.previousIndex === 9 ? 11 : 5;
+          break;
+        case 5:
+          // Cross between word two and word one
+          this.nextIndex = this.correctMap?.[0]?.[2]?.status === 1 ? 7 : 2;
+          break;
+        case 9:
+          // Last point of word two
+          this.nextIndex = this.correctMap?.[0]?.[4]?.status === 1 ? 11 : 4;
+          break;
+        case 14:
+          // Last point of word three
+          this.nextIndex = 14;
+          break;
+      }
+
+      let nextMapLine = 0;
+      let nextMapColumn = 0;
+
+      do {
+        nextMapLine = this.nextIndex <= 4 ? 0 : this.nextIndex <= 9 ? 1 : 2;
+        nextMapColumn =
+          nextMapLine === 1
+            ? this.nextIndex - 5
+            : nextMapLine === 2
+            ? this.nextIndex - 10
+            : this.nextIndex;
+
+        if (nextMapColumn < 0) {
+          nextMapColumn = 0;
+          nextMapLine = nextMapLine === 2 ? 0 : nextMapLine + 1;
+        }
+
+        if (this.correctMap?.[nextMapLine]?.[nextMapColumn]?.status === 1) {
+          if (this.nextIndex === 9 || this.nextIndex === 5) {
+            this.nextIndex++;
+          }
+          this.nextIndex++;
+        }
+        if (this.nextIndex > 14) {
+          this.nextIndex = 14;
+          return;
+        }
+      } while (this.correctMap?.[nextMapLine]?.[nextMapColumn]?.status === 1);
+    },
+    keyup(i, $e) {
+      let mapLine = i <= 4 ? 0 : i <= 9 ? 1 : 2;
+      let mapColumn = mapLine === 1 ? i - 5 : mapLine === 2 ? i - 10 : i;
+
+      if (mapColumn < 0) {
+        mapColumn = 0;
+        mapLine = mapLine === 2 ? 0 : mapLine + 1;
+      }
+
+      const ref = this.$refs[`i-${i}`];
+      const current = Array.isArray(ref) ? ref[0] : ref;
+
+      if (this.correctMap?.[mapLine]?.[mapColumn]?.status !== 1) {
+        current.value = $e.data.toUpperCase();
+      }
+
+      this.updateNextIndex(i);
+      const kind = i >= 0 && i <= 4 ? 1 : i >= 5 && i <= 9 ? 2 : 3;
+      // const nextKind = i < 4 ? 1 : i < 9 ? 2 : 3;
+      this.previousIndex = i;
+
+      this.mountWord(kind, i, current.value);
+
+      if ($e.inputType.toLowerCase() !== "deletecontentbackward") {
+        this.putFocus(this.nextIndex);
+      }
+    },
+    getSecondWordIndex() {
+      const curDay = () => {
+        var a = new Date().setHours(0, 0, 0, 0);
+
+        return Math.floor((a - new Date(2022, 2, 11, 0, 0, 0, 0)) / 864e5);
+      };
+      return curDay() % words.length;
+    },
+    getOtherWordsIndex(index) {
+      const curDay = () => {
+        var a = new Date().setHours(0, 0, 0, 0);
+
+        return Math.floor((a - new Date(2022, 2, 11, 0, 0, 0, 0)) / 864e5);
+      };
+
+      return curDay() % this[index].length;
+    },
+    handleKey(key) {
+      if (this.endGame) {
+        this.showEndGame = true;
+        return;
+      }
+
+      const place = document.getElementsByClassName("c-input--focus")[0];
+
+      if (key === "DELETE")
+        return this.handleDelete(parseInt(place.id.replace("i-", "")));
+      if (key === "ENTER") return this.handleSubmit();
+
+      this.keyup(parseInt(place.id.replace("i-", "")), {
+        data: key,
+        inputType: "insertText",
+      });
+    },
+    handleDelete(i) {
+      let mapLine = i <= 4 ? 0 : i <= 9 ? 1 : 2;
+      let mapColumn = mapLine === 1 ? i - 5 : mapLine === 2 ? i - 10 : i;
+
+      if (mapColumn < 0) {
+        mapColumn = 0;
+        mapLine = mapLine === 2 ? 0 : mapLine + 1;
+      }
+
+      const ref = this.$refs[`i-${i}`];
+      const current = Array.isArray(ref) ? ref[0] : ref;
+
+      let previousIndex = i - 1;
+
+      switch (i) {
+        case 2:
+          previousIndex = this.fromIndex === 7 ? 5 : 1;
+          break;
+        case 7:
+          previousIndex = 2;
+          break;
+        case 11:
+          previousIndex = 4;
+          break;
+      }
+
+      if (current.value === "" && previousIndex >= 0) {
+        let prevMapLine = previousIndex <= 4 ? 0 : previousIndex <= 9 ? 1 : 2;
+        let prevMapColumn =
+          prevMapLine === 1
+            ? previousIndex - 5
+            : prevMapLine === 2
+            ? previousIndex - 10
+            : previousIndex;
+
+        if (prevMapColumn < 0) {
+          prevMapColumn = 0;
+          prevMapLine = prevMapLine === 2 ? 0 : prevMapLine + 1;
+        }
+
+        const prevRef = this.$refs[`i-${previousIndex}`];
+        const previous = Array.isArray(prevRef) ? prevRef[0] : prevRef;
+
+        if (this.correctMap?.[prevMapLine]?.[prevMapColumn]?.status !== 1) {
+          previous.value = "";
+          this.putFocus(previousIndex);
+        } else {
+          this.updateNextIndex(-1);
+          this.putFocus(this.nextIndex);
+        }
+      }
+      this.fromIndex = i;
+
+      if (this.correctMap?.[mapLine]?.[mapColumn]?.status !== 1) {
+        current.value = "";
+      } else {
+        this.updateNextIndex(-1);
+
+        this.putFocus(this.nextIndex);
+      }
+    },
+    handleSubmit() {
+      if (this.endGame) {
+        this.showEndGame = true;
+        return;
+      }
+
+      if (
+        this.wordOne.letters.length +
+          this.wordTwo.letters.length +
+          this.wordThree.letters.length <
+        15
+      ) {
+        this.$toast.error("Você precisa preencher todos os quadros!");
+        return;
+      }
+
+      const insertedWordsRaw = [this.wordOne, this.wordTwo, this.wordThree];
+
+      const insertedWords = [
+        this.wordOne.letters.map((i) => i?.letter || "").join(""),
+        this.wordTwo.letters.map((i) => i?.letter || "").join(""),
+        this.wordThree.letters.map((i) => i?.letter || "").join(""),
+      ];
+
+      const validWords = [
+        this.latenize(this.word1).toUpperCase(),
+        this.latenize(this.word2).toUpperCase(),
+        this.latenize(this.word3).toUpperCase(),
+      ];
+
+      const validLetters = [
+        ...new Set([...validWords[0], ...validWords[1], ...validWords[2]]),
+      ].sort();
+
+      const insertedLetters = [
+        ...new Set([
+          ...insertedWords[0],
+          ...insertedWords[1],
+          ...insertedWords[2],
+        ]),
+      ].sort();
+
+      // Updates keyboard
+      insertedLetters.forEach((x) => {
+        this.keyboard.find(
+          (i) =>
+            i.key === x &&
+            (i.evaluation = !validLetters.includes(x) ? "absent" : "present")
+        );
+      });
+
+      const tries = [];
+
+      this.correctMap = [
+        ...[0, 1, 2].map((i) => {
+          return [
+            ...insertedWordsRaw[i].letters.map((item, index) => {
+              if (validWords[i][index] === item?.letter) {
+                // The letter is in the right position
+                tries[i] = [...(tries[i] || [])];
+                tries[i][
+                  index
+                ] = `<span class="c-published-letter c-input--correct">${item?.letter}</span>`;
+
+                item.status = 1;
+              } else if (item?.letter) {
+                const letter = item.letter;
+                item = {
+                  ...(item || {}),
+                  letter,
+                  status: validLetters.includes(letter) ? 2 : 3,
+                };
+                tries[i] = [...(tries[i] || [])];
+
+                tries[i][index] = `<span class="c-published-letter c-input--${
+                  item.status === 2 ? "present" : "absent"
+                }">${item.letter}</span>`;
+
+                const position =
+                  i === 0
+                    ? index
+                    : i === 1
+                    ? index === 1
+                      ? 2
+                      : index + 5
+                    : index === 0
+                    ? 4
+                    : index + 10;
+                const ref = this.$refs[`i-${position}`];
+                const current = Array.isArray(ref) ? ref[0] : ref;
+
+                current.value = "";
+              }
+              return item;
+            }),
+          ];
+        }),
+      ];
+
+      this.tries.push(
+        `<span class="c-published-position">1.</span>${tries[0].join(
+          ""
+        )} <span class="c-published-position">2.</span>${tries[1].join(
+          ""
+        )}<span class="c-published-position">3.</span>${tries[2].join("")}`
+      );
+
+      console.log(this.correctMap);
+      if (this.tries.length === 8 || this.won) {
+        this.endGame = true;
+        this.showEndGame = true;
+        if (this.won) {
+          this.$toast.success("Você venceu!");
+        }
+      }
+      this.updateNextIndex(-1);
+
+      const state = {
+        day: this.startDay,
+        tries: this.tries,
+        keyboard: this.keyboard,
+        correctMap: this.correctMap,
+        wordOne: this.wordOne,
+        wordTwo: this.wordTwo,
+        wordThree: this.wordThree,
+        endGame: this.endGame,
+      };
+
+      let cross = {};
+      const raw = localStorage.getItem("cross");
+
+      if (raw) {
+        cross = JSON.parse(raw);
+      }
+
+      if (this.endGame) {
+        const stats = {
+          wins: this.won
+            ? (parseInt(cross?.stats?.wins) || 0) + 1
+            : parseInt(cross?.stats?.wins) || 0,
+          history: this.won
+            ? {
+                ...(cross?.stats?.history || {}),
+                [this.tries.length]:
+                  (cross?.stats?.history?.[this.tries.length] || 0) + 1,
+              }
+            : {
+                ...(cross?.stats?.history || {}),
+                [9]: (cross?.stats?.history?.[9] || 0) + 1,
+              },
+        };
+        this.stats = stats;
+        cross = {
+          ...cross,
+          stats: {
+            ...(cross?.stats || {}),
+            ...stats,
+          },
+        };
+      }
+
+      localStorage.setItem(
+        "cross",
+        JSON.stringify({
+          ...cross,
+          state,
+        })
+      );
+
+      this.stats = cross?.stats || this.stats;
+      this.putFocus(this.nextIndex);
+    },
+  },
+};
+</script>
+<style>
+main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+}
+.c-header {
+  padding: 12px;
+  font-size: 20px;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+}
+.c-board {
+  padding: 20px 0;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+.c-input-group {
+  display: grid;
+  align-items: center;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 2px;
+  margin-bottom: 2px;
+}
+.c-input {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  font-size: 24px;
+  text-align: center;
+  display: inline-block;
+  background-color: #fff;
+}
+.c-input:focus,
+.c-input--focus {
+  border-bottom: 4px;
+  background-color: #aaa;
+}
+.c-input--hide {
+  background-color: transparent;
+  border: none;
+  pointer-events: none;
+  display: inline-block;
+}
+.c-input--correct {
+  background-color: #3aa394;
+}
+.c-keyboard {
+  bottom: 0;
+  width: 100%;
+  left: 0;
+  margin-bottom: 60px;
+  padding: 0 4px;
+}
+.c-keyboard__line {
+  display: grid;
+  width: 100%;
+  grid-gap: 4px;
+  grid-template-columns: repeat(11, 1fr);
+  margin-bottom: 4px;
+  align-items: center;
+  align-content: center;
+}
+.c-keyboard__button {
+  height: 66px;
+  font-weight: bold;
+  font-size: 24px;
+}
+.c-status {
+  font-size: 11px;
+  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.c-status__number {
+  font-size: 16px;
+  font-weight: bold;
+}
+.c-result__header {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+ol {
+  padding: 0;
+  padding-left: 16px;
+}
+ul {
+  padding: 0;
+  list-style: none;
+}
+ul > li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+}
+ul > li:before {
+  content: "💀";
+  display: inline;
+  margin-left: -3px;
+}
+
+.c-input__label {
+  background-color: transparent;
+  color: #fff;
+}
+
+.c-published-position {
+  margin-left: 4px;
+  font-size: 9px;
+  color: #fff;
+}
+
+.c-published-letter {
+  /* padding: 1px; */
+  font-weight: bold;
+  border-radius: 1.5px;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+}
+
+.c-past {
+  display: grid;
+  grid-gap: 1px;
+  grid-template-columns: repeat(18, 1fr);
+  height: min-content;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+}
+
+.c-input--absent {
+  background-color: black;
+}
+.c-input--present {
+  background-color: #d3ad69;
+}
+.c-input--correct {
+  background-color: #3aa394;
+}
+</style>

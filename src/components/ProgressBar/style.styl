@@ -1,0 +1,32 @@
+.c-progress-bar
+  display grid
+  grid-gap 8px
+  align-items center
+  grid-template-columns 1fr 20px
+  &__bar
+    overflow hidden
+    width 100%
+    min-height 14px
+    border-radius 6px
+    background-color #1f1f1f
+    position relative
+    align-items center
+    display flex
+  &__progress, &__progress-false
+    border-radius 6px
+    width 0
+    height 100%
+    background-color rgb(29, 155, 240)
+    position absolute
+    left 0
+    top 0
+    z-index 1
+  &__progress
+    opacity .5
+  &__progress-false
+    background-color #FFF
+  &__label
+    font-weight 600
+    position relative
+    z-index 2
+    padding 8px

@@ -1,0 +1,94 @@
+.c-button
+  padding 8px 14px
+  display inline-block
+  cursor pointer
+  border none
+  text-decoration none
+  transition all .2s ease
+  border-radius 8px
+  appearance none
+  position relative
+  outline none
+  font-size 12px
+  height 40px
+  box-sizing border-box
+  text-align center
+  cursor pointer
+  overflow hidden
+  background-color #333
+  color #FFF
+
+  &--disabled
+    cursor not-allowed
+    opacity .6
+  &--block
+    display block
+    width 100%
+  &--sprawled
+    min-width 160px
+    padding 12px 48px
+  &--circle
+    width 40px
+    height 40px
+    border-radius 20px
+  &--fit
+    padding 0!important
+    width auto!important
+    height 100%!important
+  &--softly
+    padding 4px 16px!important
+    height 28px
+    font-size 12px
+  &__hover
+    position absolute
+    left 0
+    bottom 0
+    background-color #181818
+    width 100%
+    height 100%
+    opacity 0
+    transition .1s all ease
+  &__selected
+    position absolute
+    left 0
+    bottom 0
+    background-color #181818
+    width 100%
+    height 100%
+    opacity 0
+    transition .1s all ease
+    background-color #d9deef
+  &--underline
+    border-bottom-left-radius 0
+    border-bottom-right-radius 0
+    .c-button__hover
+    .c-button__selected
+      height 4px
+
+  &--with-icon
+    .c-button__content
+      gap 4px
+  &--selected
+    .c-button__content
+      font-weight 500!important
+    .c-button__selected
+      opacity 1
+  @media(max-width 768px)
+    font-size 13px
+
+  &:hover
+    background-color #181818
+
+    & > .c-button__hover
+      opacity .15
+  &__content
+    position relative
+    width 100%
+    height 100%
+    display flex
+    align-items center
+    justify-content center
+    & >>> > *
+      flex-shrink 0
+    &--hide
+      color transparent

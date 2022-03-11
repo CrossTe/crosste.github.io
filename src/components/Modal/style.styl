@@ -1,0 +1,87 @@
+.c-modal
+  position fixed
+  width 100%
+  height 100%
+  left 0
+  top 0
+  right 0
+  bottom 0
+  background-color rgba(255,255,255,.4)
+  display flex
+  align-items center
+  justify-content center
+  z-index 100
+  &__overlay
+    position absolute
+    width 100%
+    height 100%
+    bottom 0
+  &__window
+    background-color #403b3b
+    padding 24px
+    display inline-flex
+    flex-direction column
+    border-radius 8px
+    min-width 300px
+    min-height 48px
+    position relative
+    max-width calc(100% - 10%)
+    overflow hidden
+    max-height calc(100% - 20px)
+    color #FFF
+    @media (max-width 768px)
+      padding 16px
+    &:after
+      display table
+      content ""
+      clear both
+    &-close
+      position absolute
+      right 4px
+      top 4px
+      background-color #403b3b
+    &-header
+      display flex
+      padding-right 40px
+      flex-shrink 0
+    &-body
+      display flex
+      flex-direction column
+      flex-grow 1
+      height auto
+      overflow-y auto
+      width 100%
+      & >>> > *
+        &:first-child
+          margin-top 12px
+
+    &-footer
+      margin-top 12px
+      display flex
+      border-top 1px solid #AAA
+      align-items center
+    &-title
+      font-size 14px
+    &-subtitle
+      margin-top 4px
+      font-size 13px
+  &--small
+    .c-modal__window
+      width 544px
+      max-width 100%
+  &--medium
+    .c-modal__window
+      width 700px
+      max-width 100%
+  &--ignore-header-padding
+    .c-modal__window-header
+      padding 0 !important
+  &.v--dark
+    background-color rgba(0,0,0,.95)
+    .c-modal
+      &__window
+        background-color #0d1117 !important
+        color #c9d1d9 !important
+        border-color #30363d !important
+        &-footer
+          border-top 1px solid #30363d !important
