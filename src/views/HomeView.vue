@@ -163,7 +163,6 @@ import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
 import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
-import { latenize } from "@/utils/string.js";
 import { chooseAnIndex } from "@/utils/array.js";
 export default {
   name: "HomeView",
@@ -913,17 +912,16 @@ ul > li:before {
 
 .c-input__label {
   background-color: transparent;
-  color: #fff;
+  color: inherit;
 }
 
 .c-published-position {
   margin-left: 4px;
   font-size: 9px;
-  color: #fff;
+  color: inherit;
 }
 
 .c-published-letter {
-  /* padding: 1px; */
   font-weight: bold;
   border-radius: 1.5px;
   color: #fff;
