@@ -89,6 +89,7 @@
       <div class="c-past" v-for="t in tries" :key="t" v-html="t" />
       <Keyboard :keyboard="keyboard" @keyboard="handleKey" />
     </div>
+
     <InstructionsModal
       v-if="showHelp"
       @close="showHelp = false"
@@ -162,6 +163,8 @@ import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
 import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
+import { latenize } from "@/utils/string.js";
+import { chooseAnIndex } from "@/utils/array.js";
 export default {
   name: "HomeView",
   components: {
@@ -209,19 +212,19 @@ export default {
       return Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
     },
     word2() {
-      return words[this.getSecondWordIndex()];
+      return words[chooseAnIndex(words.length)];
     },
     first() {
       return words.filter((i) => i[2] === this.word2[1]);
     },
     word1() {
-      return this.first[this.getOtherWordsIndex("first")];
+      return this.first[chooseAnIndex(this.first.length)];
     },
     third() {
       return words.filter((i) => i[0] === this.word1[4]);
     },
     word3() {
-      return this.third[this.getOtherWordsIndex("third")];
+      return this.third[chooseAnIndex(this.third.length)];
     },
     won() {
       let status = true;
@@ -257,10 +260,13 @@ export default {
   methods: {
     getStatusColor(line, column) {
       return {
-        "c-input--correct": this.correctMap?.[line]?.[column]?.status === 1,
+        "c-input--correct": this.isCorrect(line, column),
         // "c-input--present": this.correctMap?.[line]?.[column]?.status === 2,
         // "c-input--absent": this.correctMap?.[line]?.[column]?.status === 3,
       };
+    },
+    isCorrect(line, column) {
+      return this.correctMap?.[line]?.[column]?.status === 1;
     },
     zerate() {
       [...document.getElementsByClassName("c-input--visible")].forEach(
@@ -359,42 +365,21 @@ export default {
       this.showEndGame = false;
       this.showStats = false;
     },
-    latenize(str) {
-      if (str) {
-        const map = {
-          a: "á|à|ã|â|À|Á|Ã|Â",
-          e: "é|è|ê|É|È|Ê",
-          i: "í|ì|î|Í|Ì|Î",
-          o: "ó|ò|ô|õ|Ó|Ò|Ô|Õ",
-          u: "ú|ù|û|ü|Ú|Ù|Û|Ü",
-          c: "ç|Ç",
-          n: "ñ|Ñ",
-        };
-
-        str = str.toLowerCase();
-
-        for (const pattern in map) {
-          str = str.replace(new RegExp(map[pattern], "g"), pattern);
-        }
-      }
-
-      return str;
-    },
     share() {
       let art = `
-⬛${this.correctMap?.[0]?.[0]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
-⬛${this.correctMap?.[0]?.[1]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
-${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
-        this.correctMap?.[0]?.[2]?.status === 1 ? "🟩" : "⬜"
-      }${this.correctMap?.[1]?.[2]?.status === 1 ? "🟩" : "⬜"}${
-        this.correctMap?.[1]?.[3]?.status === 1 ? "🟩" : "⬜"
-      }${this.correctMap?.[1]?.[4]?.status === 1 ? "🟩" : "⬜"}⬛
-⬛${this.correctMap?.[0]?.[3]?.status === 1 ? "🟩" : "⬜"}⬛⬛⬛⬛
-⬛${this.correctMap?.[0]?.[4]?.status === 1 ? "🟩" : "⬜"}${
-        this.correctMap?.[2]?.[1]?.status === 1 ? "🟩" : "⬜"
-      }${this.correctMap?.[2]?.[2]?.status === 1 ? "🟩" : "⬜"}${
-        this.correctMap?.[2]?.[3]?.status === 1 ? "🟩" : "⬜"
-      }${this.correctMap?.[2]?.[4]?.status === 1 ? "🟩" : "⬜"}`;
+⬛${this.isCorrect(0, 0) ? "🟩" : "⬜"}⬛⬛⬛⬛
+⬛${this.isCorrect(0, 1) ? "🟩" : "⬜"}⬛⬛⬛⬛
+${this.isCorrect(1, 0) ? "🟩" : "⬜"}${this.isCorrect(0, 2) ? "🟩" : "⬜"}${
+        this.isCorrect(1, 2) ? "🟩" : "⬜"
+      }${this.isCorrect(1, 3) ? "🟩" : "⬜"}${
+        this.isCorrect(1, 4) ? "🟩" : "⬜"
+      }⬛
+⬛${this.isCorrect(0, 3) ? "🟩" : "⬜"}⬛⬛⬛⬛
+⬛${this.isCorrect(0, 4) ? "🟩" : "⬜"}${this.isCorrect(2, 1) ? "🟩" : "⬜"}${
+        this.isCorrect(2, 2) ? "🟩" : "⬜"
+      }${this.isCorrect(2, 3) ? "🟩" : "⬜"}${
+        this.isCorrect(2, 4) ? "🟩" : "⬜"
+      }`;
 
       const title = `Joguei CrossTe #${this.currDay}`;
       const text = this.won
@@ -477,7 +462,7 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
       switch (i) {
         case 1:
           // Cross between word one and word two
-          this.nextIndex = this.correctMap?.[1]?.[1]?.status === 1 ? 3 : 2;
+          this.nextIndex = this.isCorrect(1, 1) ? 3 : 2;
           break;
         case 2:
           // Interception point between one and two
@@ -490,11 +475,11 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
           break;
         case 5:
           // Cross between word two and word one
-          this.nextIndex = this.correctMap?.[0]?.[2]?.status === 1 ? 7 : 2;
+          this.nextIndex = this.isCorrect(0, 2) ? 7 : 2;
           break;
         case 9:
           // Last point of word two
-          this.nextIndex = this.correctMap?.[0]?.[4]?.status === 1 ? 11 : 4;
+          this.nextIndex = this.isCorrect(0, 4) ? 11 : 4;
           break;
         case 14:
           // Last point of word three
@@ -519,7 +504,7 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
           nextMapLine = nextMapLine === 2 ? 0 : nextMapLine + 1;
         }
 
-        if (this.correctMap?.[nextMapLine]?.[nextMapColumn]?.status === 1) {
+        if (this.isCorrect(nextMapLine, nextMapColumn)) {
           if (this.nextIndex === 9 || this.nextIndex === 5) {
             this.nextIndex++;
           }
@@ -529,7 +514,7 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
           this.nextIndex = 14;
           return;
         }
-      } while (this.correctMap?.[nextMapLine]?.[nextMapColumn]?.status === 1);
+      } while (this.isCorrect(nextMapLine, nextMapColumn));
     },
     keyup(i, $e) {
       let mapLine = i <= 4 ? 0 : i <= 9 ? 1 : 2;
@@ -549,7 +534,7 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
 
       this.updateNextIndex(i);
       const kind = i >= 0 && i <= 4 ? 1 : i >= 5 && i <= 9 ? 2 : 3;
-      // const nextKind = i < 4 ? 1 : i < 9 ? 2 : 3;
+
       this.previousIndex = i;
 
       this.mountWord(kind, i, current.value);
@@ -557,23 +542,6 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
       if ($e.inputType.toLowerCase() !== "deletecontentbackward") {
         this.putFocus(this.nextIndex);
       }
-    },
-    getSecondWordIndex() {
-      const curDay = () => {
-        var a = new Date().setHours(0, 0, 0, 0);
-
-        return Math.floor((a - new Date(2022, 2, 11, 0, 0, 0, 0)) / 864e5);
-      };
-      return curDay() % words.length;
-    },
-    getOtherWordsIndex(index) {
-      const curDay = () => {
-        var a = new Date().setHours(0, 0, 0, 0);
-
-        return Math.floor((a - new Date(2022, 2, 11, 0, 0, 0, 0)) / 864e5);
-      };
-
-      return curDay() % this[index].length;
     },
     handleKey(key) {
       if (this.endGame) {
@@ -635,7 +603,7 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
         const prevRef = this.$refs[`i-${previousIndex}`];
         const previous = Array.isArray(prevRef) ? prevRef[0] : prevRef;
 
-        if (this.correctMap?.[prevMapLine]?.[prevMapColumn]?.status !== 1) {
+        if (!this.isCorrect(prevMapLine, prevMapColumn)) {
           previous.value = "";
           this.putFocus(previousIndex);
         } else {
@@ -645,11 +613,10 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
       }
       this.fromIndex = i;
 
-      if (this.correctMap?.[mapLine]?.[mapColumn]?.status !== 1) {
+      if (!this.isCorrect(mapLine, mapColumn)) {
         current.value = "";
       } else {
         this.updateNextIndex(-1);
-
         this.putFocus(this.nextIndex);
       }
     },
@@ -677,11 +644,26 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
         this.wordThree.letters.map((i) => i?.letter || "").join(""),
       ];
 
-      const validWords = [
-        this.latenize(this.word1).toUpperCase(),
-        this.latenize(this.word2).toUpperCase(),
-        this.latenize(this.word3).toUpperCase(),
-      ];
+      const validWords = [this.word1, this.word2, this.word3];
+
+      let invalids = [];
+
+      insertedWords.forEach((word) => {
+        if (!words.includes(word)) {
+          invalids.push(word);
+        }
+      });
+
+      if (invalids.length) {
+        const phrase =
+          invalids.length === 1
+            ? `A palavra ${invalids[0]} é inválida!`
+            : invalids.length === 2
+            ? `As palavras ${invalids.join(" e ")} são inválidas!`
+            : `As palavras ${invalids[0]}, ${invalids[1]} e ${invalids[2]} são inválidas!`;
+        this.$toast.error(phrase);
+        return;
+      }
 
       const validLetters = [
         ...new Set([...validWords[0], ...validWords[1], ...validWords[2]]),
@@ -760,7 +742,6 @@ ${this.correctMap?.[1]?.[0]?.status === 1 ? "🟩" : "⬜"}${
         )}<span class="c-published-position">3.</span>${tries[2].join("")}`
       );
 
-      console.log(this.correctMap);
       if (this.tries.length === 8 || this.won) {
         this.endGame = true;
         this.showEndGame = true;

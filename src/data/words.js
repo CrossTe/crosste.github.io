@@ -1,3 +1,5 @@
+import { latenize } from "@/utils/string";
+
 export default [
   "termo",
   "suíte",
@@ -1579,4 +1581,4 @@ export default [
   "saber",
   "elfos",
   "visar",
-];
+].map((i) => latenize(i).toUpperCase());
