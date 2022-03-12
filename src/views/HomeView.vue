@@ -168,7 +168,7 @@ import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
-import { UAExplorer, isBrowserFirefox } from "@/utils/uaexplorer.js";
+import { UAExplorer } from "@/utils/uaexplorer.js";
 
 export default {
   name: "HomeView",
@@ -659,9 +659,9 @@ export default {
       }
 
       if (
-        this.wordOne.letters.length +
-          this.wordTwo.letters.length +
-          this.wordThree.letters.length <
+        this.wordOne.letters.filter((i) => i).length +
+          this.wordTwo.letters.filter((i) => i).length +
+          this.wordThree.letters.filter((i) => i).length <
         15
       ) {
         this.$toast.error("Você precisa preencher todos os quadros!");
@@ -719,7 +719,7 @@ export default {
       });
 
       const tries = [];
-
+      const wordsName = ["wordOne", "wordTwo", "wordThree"];
       this.correctMap = [
         ...[0, 1, 2].map((i) => {
           const validWord = [...validWords[i]];
@@ -758,6 +758,7 @@ export default {
                   : index + 10;
               const ref = this.$refs[`i-${position}`];
               const current = Array.isArray(ref) ? ref[0] : ref;
+              this[wordsName[i]].letters[index] = undefined;
 
               current.value = "";
             }
