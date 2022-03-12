@@ -168,6 +168,8 @@ import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
+import { UAExplorer, isBrowserFirefox } from "@/utils/uaexplorer.js";
+
 export default {
   name: "HomeView",
   components: {
@@ -371,6 +373,7 @@ export default {
       this.showStats = false;
     },
     share() {
+      const ua = UAExplorer(navigator.userAgent);
       const numberEmojis = [
         "0️⃣",
         "1️⃣",
@@ -412,7 +415,7 @@ export default {
           } ${this.tries?.length === 1 ? "tentativa" : "tentativas"}!`
         : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!`;
 
-      if (navigator.share) {
+      if (navigator.share && ua.browser !== "Firefox") {
         navigator
           .share({
             title,
