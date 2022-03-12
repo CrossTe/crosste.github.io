@@ -375,7 +375,7 @@ export default {
         "9️⃣",
       ];
 
-      const t = this.tries
+      const t = [...this.tries]
         .map((i) =>
           i.split("c-published-position").filter((i) => i.includes("."))
         )
@@ -383,7 +383,7 @@ export default {
           (acc, i, key) => {
             i.forEach((j) => {
               const index = parseInt(j.match(/\d+/g).join(""));
-              const completed = j.match(/correct/g).length === 5;
+              const completed = j.match(/correct/g)?.length === 5;
 
               acc[index] = completed && acc[index] === null ? key : acc[index];
             });
@@ -399,8 +399,8 @@ export default {
       const title = `Joguei CrossTe #${this.currDay}`;
       const text = this.won
         ? `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\nVenci com ${
-            this.tries.length
-          } ${this.tries.length === 1 ? "tentativa" : "tentativas"}!`
+            this.tries?.length
+          } ${this.tries?.length === 1 ? "tentativa" : "tentativas"}!`
         : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!`;
 
       if (navigator.share) {
