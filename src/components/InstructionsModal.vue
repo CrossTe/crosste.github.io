@@ -1,67 +1,42 @@
 <template>
   <Modal @close="$emit('close')" title="Instruções">
+    <p>Descubra as palavras certas em 8 tentativas.</p>
+
     <p>
-      Descubra as palavras certas em 8 tentativas. Depois de cada tentativa, as
-      peças mostram o quão perto você está da solução.
+      Se você acertar a posição de uma letra, ela ficará fixa e verde no
+      tabuleiro, e aparecerá verde no resumo da jogada.
     </p>
-    <br />
+    <div class="c-false-key c-input--correct">R</div>
     <p>
-      Quando você acertar uma letra e sua posição, a letra ficará fixa e verde
-      no tabuleiro.
+      Se você encontrar uma letra que existe na palavra, ela ficará amarela no
+      teclado e no resumo da jogada.
     </p>
-    <div
-      class="c-input c-input--correct"
-      style="
-        font-weight: bold;
-        color: #fff;
-        font-size: 15px;
-        width: 30px;
-        height: 30px;
-        margin: 8px 0;
-      "
+    <div class="c-false-key c-input--present">R</div>
+    <p>
+      Se você encontrar uma letra que existe no tabuleiro, mas não existe na
+      palavra, a letra também ficará amarela no teclado, mas ficará preta no
+      resumo da jogada, naquela palavra.
+    </p>
+    <p
+      class="c-past"
+      style="padding-left: 0; margin-top: 4px; margin-bottom: 4px"
     >
-      R
-    </div>
-    <p>
-      Quando você encontrar uma letra que existe no tabuleiro, a letra ficará
-      amarela no teclado. <b>Não significa que será naquela palavra</b>.
+      <span class="c-published-letter c-input--correct">R</span>
+      <span class="c-published-letter c-input--absent">E</span>
+      <span class="c-published-letter c-input--correct">S</span>
+      <span class="c-published-letter c-input--correct">T</span>
+      <span class="c-published-letter c-input--correct">O</span>
     </p>
-    <div
-      class="c-input c-input--present"
-      style="
-        font-weight: bold;
-        color: #fff;
-        font-size: 15px;
-        width: 30px;
-        height: 30px;
-        margin: 8px 0;
-      "
-    >
-      R
-    </div>
     <p>
-      Quando você encontrar uma letra que não existe no tabuleiro, a letra
-      ficará preta no teclado.
+      Se você encontrar uma letra que não existe no tabuleiro, a letra ficará
+      preta no teclado.
     </p>
-    <div
-      class="c-input c-input--absent"
-      style="
-        font-weight: bold;
-        color: #fff;
-        font-size: 15px;
-        width: 30px;
-        height: 30px;
-        margin: 8px 0;
-      "
-    >
-      R
-    </div>
+    <div class="c-false-key c-input--absent">R</div>
     <p>
       Se a letra não estiver na posição correta, ela irá desaparecer do
       tabuleiro.
     </p>
     <p><b>Acentuação e cedilha não são considerados!</b></p>
-    <p>Um resumo de suas jogadas aparecerá na tela.</p>
   </Modal>
 </template>
 <script>

@@ -688,56 +688,76 @@ ${this.isCorrect(1, 0) ? "🟩" : "⬜"}${this.isCorrect(0, 2) ? "🟩" : "⬜"}
 
       this.correctMap = [
         ...[0, 1, 2].map((i) => {
+          const validWord = [...validWords[i]].reverse();
+          let validWordCheck = validWord.join("");
           return [
-            ...insertedWordsRaw[i].letters.map((item, index) => {
-              if (validWords[i][index] === item?.letter) {
-                // The letter is in the right position
-                tries[i] = [...(tries[i] || [])];
-                tries[i][
-                  index
-                ] = `<span class="c-published-letter c-input--correct">${item?.letter}</span>`;
+            ...[...insertedWordsRaw[i].letters]
+              .reverse()
+              .map((item, index) => {
+                if (validWord[index] === item?.letter) {
+                  // The letter is in the right position
+                  tries[i] = [...(tries[i] || [])];
+                  tries[i][
+                    index
+                  ] = `<span class="c-published-letter c-input--correct">${item.letter}</span>`;
 
-                item.status = 1;
-              } else if (item?.letter) {
-                const letter = item.letter;
-                item = {
-                  ...(item || {}),
-                  letter,
-                  status: validLetters.includes(letter) ? 2 : 3,
-                };
-                tries[i] = [...(tries[i] || [])];
+                  item.status = 1;
 
-                tries[i][index] = `<span class="c-published-letter c-input--${
-                  item.status === 2 ? "present" : "absent"
-                }">${item.letter}</span>`;
+                  validWordCheck = validWordCheck.replace(item.letter, "");
+                } else if (item?.letter) {
+                  const letter = item.letter;
+                  item = {
+                    ...(item || {}),
+                    letter,
+                    status: validLetters.includes(letter) ? 2 : 3,
+                  };
+                  tries[i] = [...(tries[i] || [])];
 
-                const position =
-                  i === 0
-                    ? index
-                    : i === 1
-                    ? index === 1
-                      ? 2
-                      : index + 5
-                    : index === 0
-                    ? 4
-                    : index + 10;
-                const ref = this.$refs[`i-${position}`];
-                const current = Array.isArray(ref) ? ref[0] : ref;
+                  let individualStatus = "absent";
 
-                current.value = "";
-              }
-              return item;
-            }),
+                  if (validWordCheck.includes(item.letter)) {
+                    individualStatus = "present";
+                    validWordCheck = validWordCheck.replace(item.letter, "");
+                  }
+
+                  tries[i][
+                    index
+                  ] = `<span class="c-published-letter c-input--${individualStatus}">${item.letter}</span>`;
+                }
+                return item;
+              })
+              .reverse()
+              .map((item, index) => {
+                if (validWords[i][index] !== item.letter) {
+                  const position =
+                    i === 0
+                      ? index
+                      : i === 1
+                      ? index === 1
+                        ? 2
+                        : index + 5
+                      : index === 0
+                      ? 4
+                      : index + 10;
+                  const ref = this.$refs[`i-${position}`];
+                  const current = Array.isArray(ref) ? ref[0] : ref;
+
+                  current.value = "";
+                }
+                return item;
+              }),
           ];
         }),
       ];
 
       this.tries.push(
-        `<span class="c-published-position">1.</span>${tries[0].join(
-          ""
-        )} <span class="c-published-position">2.</span>${tries[1].join(
-          ""
-        )}<span class="c-published-position">3.</span>${tries[2].join("")}`
+        `<span class="c-published-position">1.</span>${tries[0]
+          .reverse()
+          .join("")} <span class="c-published-position">2.</span>${tries[1]
+          .reverse()
+          .join("")}<span class="c-published-position">3.</span>${tries[2]
+          .reverse()
+          .join("")}`
       );
 
       if (this.tries.length === 8 || this.won) {
@@ -834,6 +854,18 @@ main {
   grid-gap: 2px;
   margin-bottom: 2px;
 }
+
+.c-false-key {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  display: inline-block;
+  background-color: #fff;
+  margin: 8px 0;
+}
+
 .c-input {
   width: 50px;
   height: 50px;

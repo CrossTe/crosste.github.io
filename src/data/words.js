@@ -1964,4 +1964,7 @@ export default [
   "desça",
   "lábil",
   "rédea",
+  "susto",
+  "espiã",
+  "visgo",
 ].map((i) => latenize(i).toUpperCase());
