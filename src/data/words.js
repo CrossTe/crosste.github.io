@@ -1967,4 +1967,6 @@ export default [
   "susto",
   "espiã",
   "visgo",
+  "ferro",
+  "curta",
 ].map((i) => latenize(i).toUpperCase());

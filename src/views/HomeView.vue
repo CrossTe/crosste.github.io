@@ -259,8 +259,6 @@ export default {
     getStatusColor(line, column) {
       return {
         "c-input--correct": this.isCorrect(line, column),
-        // "c-input--present": this.correctMap?.[line]?.[column]?.status === 2,
-        // "c-input--absent": this.correctMap?.[line]?.[column]?.status === 3,
       };
     },
     isCorrect(line, column) {
@@ -688,76 +686,67 @@ ${this.isCorrect(1, 0) ? "🟩" : "⬜"}${this.isCorrect(0, 2) ? "🟩" : "⬜"}
 
       this.correctMap = [
         ...[0, 1, 2].map((i) => {
-          const validWord = [...validWords[i]].reverse();
+          const validWord = [...validWords[i]];
           let validWordCheck = validWord.join("");
-          return [
-            ...[...insertedWordsRaw[i].letters]
-              .reverse()
-              .map((item, index) => {
-                if (validWord[index] === item?.letter) {
-                  // The letter is in the right position
-                  tries[i] = [...(tries[i] || [])];
-                  tries[i][
-                    index
-                  ] = `<span class="c-published-letter c-input--correct">${item.letter}</span>`;
+          let checkLatter = [];
+          let set = [...insertedWordsRaw[i].letters].map((item, index) => {
+            if (validWord[index] === item?.letter) {
+              // The letter is in the right position
+              tries[i] = [...(tries[i] || [])];
+              tries[i][
+                index
+              ] = `<span class="c-published-letter c-input--correct">${item.letter}</span>`;
 
-                  item.status = 1;
+              item.status = 1;
 
-                  validWordCheck = validWordCheck.replace(item.letter, "");
-                } else if (item?.letter) {
-                  const letter = item.letter;
-                  item = {
-                    ...(item || {}),
-                    letter,
-                    status: validLetters.includes(letter) ? 2 : 3,
-                  };
-                  tries[i] = [...(tries[i] || [])];
+              validWordCheck = validWordCheck.replace(item.letter, "");
+            } else if (item?.letter) {
+              const letter = item.letter;
+              item = {
+                ...(item || {}),
+                letter,
+                status: validLetters.includes(letter) ? 2 : 3,
+              };
+              tries[i] = [...(tries[i] || [])];
+              checkLatter.push({ letter, index });
 
-                  let individualStatus = "absent";
+              const position =
+                i === 0
+                  ? index
+                  : i === 1
+                  ? index === 1
+                    ? 2
+                    : index + 5
+                  : index === 0
+                  ? 4
+                  : index + 10;
+              const ref = this.$refs[`i-${position}`];
+              const current = Array.isArray(ref) ? ref[0] : ref;
 
-                  if (validWordCheck.includes(item.letter)) {
-                    individualStatus = "present";
-                    validWordCheck = validWordCheck.replace(item.letter, "");
-                  }
-
-                  tries[i][
-                    index
-                  ] = `<span class="c-published-letter c-input--${individualStatus}">${item.letter}</span>`;
-                }
-                return item;
-              })
-              .reverse()
-              .map((item, index) => {
-                if (validWords[i][index] !== item.letter) {
-                  const position =
-                    i === 0
-                      ? index
-                      : i === 1
-                      ? index === 1
-                        ? 2
-                        : index + 5
-                      : index === 0
-                      ? 4
-                      : index + 10;
-                  const ref = this.$refs[`i-${position}`];
-                  const current = Array.isArray(ref) ? ref[0] : ref;
-
-                  current.value = "";
-                }
-                return item;
-              }),
-          ];
+              current.value = "";
+            }
+            return item;
+          });
+          checkLatter.forEach(({ letter, index }) => {
+            let individualStatus = "absent";
+            if (validWordCheck.includes(letter)) {
+              individualStatus = "present";
+              validWordCheck = validWordCheck.replace(letter, "");
+            }
+            tries[i][
+              index
+            ] = `<span class="c-published-letter c-input--${individualStatus}">${letter}</span>`;
+          });
+          return [...set];
         }),
       ];
 
       this.tries.push(
-        `<span class="c-published-position">1.</span>${tries[0]
-          .reverse()
-          .join("")} <span class="c-published-position">2.</span>${tries[1]
-          .reverse()
-          .join("")}<span class="c-published-position">3.</span>${tries[2]
-          .reverse()
-          .join("")}`
+        `<span class="c-published-position">1.</span>${tries[0].join(
+          ""
+        )} <span class="c-published-position">2.</span>${tries[1].join(
+          ""
+        )}<span class="c-published-position">3.</span>${tries[2].join("")}`
       );
 
       if (this.tries.length === 8 || this.won) {
