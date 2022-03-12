@@ -6,12 +6,12 @@
       Se você acertar a posição de uma letra, ela ficará fixa e verde no
       tabuleiro, e aparecerá verde no resumo da jogada.
     </p>
-    <div class="c-false-key c-input--correct">R</div>
+    <div class="c-false-key c-input--correct">E</div>
     <p>
       Se você encontrar uma letra que existe na palavra, ela ficará amarela no
       teclado e no resumo da jogada.
     </p>
-    <div class="c-false-key c-input--present">R</div>
+    <div class="c-false-key c-input--present">E</div>
     <p>
       Se você encontrar uma letra que existe no tabuleiro, mas não existe na
       palavra, a letra também ficará amarela no teclado, mas ficará preta no
@@ -31,7 +31,7 @@
       Se você encontrar uma letra que não existe no tabuleiro, a letra ficará
       preta no teclado.
     </p>
-    <div class="c-false-key c-input--absent">R</div>
+    <div class="c-false-key c-input--absent">E</div>
     <p>
       Se a letra não estiver na posição correta, ela irá desaparecer do
       tabuleiro.
