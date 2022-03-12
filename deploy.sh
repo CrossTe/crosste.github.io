@@ -23,4 +23,4 @@ git push -f git@github.com:CrossTe/crosste.github.io.git gh-pages
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 # git push -f git@github.com:<USERNAME>/<REPO>.git main:gh-pages
 
-cd -
+cd ..; rm -rf dist;
