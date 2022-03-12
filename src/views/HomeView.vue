@@ -405,7 +405,12 @@ export default {
         );
 
       const art = Object.keys(t)
-        .map((key) => `${numberEmojis[key]}➡️${numberEmojis[t[key] + 1]}`)
+        .map(
+          (key) =>
+            `${numberEmojis[key]}➡️${
+              t[key] === null ? "🟥" : numberEmojis[t[key] + 1]
+            }`
+        )
         .join("\n");
 
       const title = `Joguei CrossTe #${this.currDay}`;
