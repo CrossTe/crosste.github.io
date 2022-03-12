@@ -152,6 +152,8 @@
         <Button v-if="endGame" @click="share"> Compartilhar </Button>
       </div>
     </Modal>
+    <GoogleAnalytics v-if="cookies" />
+    <CookiesBanner v-if="cookies === null" @close="cookies = $event" />
   </main>
 </template>
 <script>
@@ -160,6 +162,8 @@ import Keyboard from "@/components/Keyboard.vue";
 import Modal from "@/components/Modal/Modal.vue";
 import Button from "@/components/Button/Button.vue";
 import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
+import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
+import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
 import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
@@ -174,6 +178,8 @@ export default {
     CountDown,
     IconStats,
     InstructionsModal,
+    GoogleAnalytics,
+    CookiesBanner,
   },
   data() {
     return {
@@ -198,6 +204,7 @@ export default {
       showStats: false,
       startDay: 0,
       stats: { games: 0, history: {}, wins: 0 },
+      cookies: null,
     };
   },
   computed: {
@@ -317,6 +324,8 @@ export default {
       let cross = null;
       if (raw) {
         cross = JSON.parse(raw);
+
+        this.cookies = typeof cross.cookies === "boolean" || null;
 
         // Get currennt Game details
         if (cross.state.day === this.currDay) {
