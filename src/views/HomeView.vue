@@ -362,28 +362,47 @@ export default {
       this.showStats = false;
     },
     share() {
-      let art = `
-⬛${this.isCorrect(0, 0) ? "🟩" : "⬜"}⬛⬛⬛⬛
-⬛${this.isCorrect(0, 1) ? "🟩" : "⬜"}⬛⬛⬛⬛
-${this.isCorrect(1, 0) ? "🟩" : "⬜"}${this.isCorrect(0, 2) ? "🟩" : "⬜"}${
-        this.isCorrect(1, 2) ? "🟩" : "⬜"
-      }${this.isCorrect(1, 3) ? "🟩" : "⬜"}${
-        this.isCorrect(1, 4) ? "🟩" : "⬜"
-      }⬛
-⬛${this.isCorrect(0, 3) ? "🟩" : "⬜"}⬛⬛⬛⬛
-⬛${this.isCorrect(0, 4) ? "🟩" : "⬜"}${this.isCorrect(2, 1) ? "🟩" : "⬜"}${
-        this.isCorrect(2, 2) ? "🟩" : "⬜"
-      }${this.isCorrect(2, 3) ? "🟩" : "⬜"}${
-        this.isCorrect(2, 4) ? "🟩" : "⬜"
-      }`;
+      const numberEmojis = [
+        "0️⃣",
+        "1️⃣",
+        "2️⃣",
+        "3️⃣",
+        "4️⃣",
+        "5️⃣",
+        "6️⃣",
+        "7️⃣",
+        "8️⃣",
+        "9️⃣",
+      ];
+
+      const t = this.tries
+        .map((i) =>
+          i.split("c-published-position").filter((i) => i.includes("."))
+        )
+        .reduce(
+          (acc, i, key) => {
+            i.forEach((j) => {
+              const index = parseInt(j.match(/\d+/g).join(""));
+              const completed = j.match(/correct/g).length === 5;
+
+              acc[index] = completed && acc[index] === null ? key : acc[index];
+            });
+            return acc;
+          },
+          { 1: null, 2: null, 3: null }
+        );
+
+      const art = Object.keys(t)
+        .map((key) => `${numberEmojis[key]}➡️${numberEmojis[t[key] + 1]}`)
+        .join("\n");
 
       const title = `Joguei CrossTe #${this.currDay}`;
       const text = this.won
-        ? `Joguei crosste.github.io #${this.currDay}\n${art}\n\nVenci com ${
+        ? `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\nVenci com ${
             this.tries.length
           } ${this.tries.length === 1 ? "tentativa" : "tentativas"}!`
-        : `Joguei crosste.github.io #${this.currDay}\n${art}\n\n Perdi, mas você pode ganhar!`;
-      const url = "crosste.github.io";
+        : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!`;
+
       if (navigator.share) {
         navigator
           .share({
@@ -395,7 +414,7 @@ ${this.isCorrect(1, 0) ? "🟩" : "⬜"}${this.isCorrect(0, 2) ? "🟩" : "⬜"}
           })
           .catch(console.error);
       } else {
-        this.$copyText(`${text}\n\n${url}`)
+        this.$copyText(text)
           .then(() => {
             this.$toast.success("Resultado copiado!");
           })
