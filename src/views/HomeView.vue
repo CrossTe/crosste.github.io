@@ -5,7 +5,7 @@
         <Button @click="showHelp = true">?</Button>
       </div>
       CrossTe #{{ currDay }}
-      <CountDown v-show="false" @timeout="zerate" />
+      <CountDown v-show="false" @timeout="reload" />
       <div>
         <Button @click="showStats = true"><IconStats /></Button>
       </div>
@@ -273,30 +273,8 @@ export default {
     isCorrect(line, column) {
       return this.correctMap?.[line]?.[column]?.status === 1;
     },
-    zerate() {
-      [...document.getElementsByClassName("c-input--visible")].forEach(
-        (i) => (i.value = "")
-      );
-      this.startDay = this.currDay;
-      this.tries = [];
-      this.keyboard = this.initializeKeyboard();
-      this.correctMap = [];
-      this.wordOne = {
-        letters: [],
-      };
-      this.wordTwo = {
-        letters: [],
-      };
-      this.wordThree = {
-        letters: [],
-      };
-      this.endGame = false;
-
-      this.showEndGame = this.endGame;
-      this.showStats = false;
-
-      this.mount();
-      this.$toast.success("NOVO JOGO!");
+    reload() {
+      document.location.reload();
     },
     mount() {
       this.startDay = this.currDay;
