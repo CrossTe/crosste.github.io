@@ -131,11 +131,11 @@
         </li>
       </ul>
       <div v-if="endGame && !won">
-        <p>Você perdeu! As palavras eram:</p>
+        <p>Você perdeu! 😩 As palavras eram:</p>
         <p>{{ word1 }} - {{ word2 }} - {{ word3 }}</p>
       </div>
       <div v-if="endGame && won">
-        <p>Você ganhou hoje!</p>
+        <p>Você ganhou hoje! 🎉</p>
       </div>
       <div
         style="
