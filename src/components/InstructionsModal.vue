@@ -1,5 +1,5 @@
 <template>
-  <Modal @close="$emit('close')" title="Instruções">
+  <Modal @close="$emit('close')" title="Instruções" medium>
     <p>Descubra as palavras certas em 8 tentativas.</p>
 
     <p>
