@@ -6,7 +6,8 @@
       </div>
       CrossTe #{{ currDay }}
       <CountDown v-show="false" @timeout="reload" />
-      <div>
+      <div style="display: flex; gap: 4px">
+        <Button @click="showAbout = true"><IconSupport /></Button>
         <Button @click="showStats = true"><IconStats /></Button>
       </div>
     </header>
@@ -143,6 +144,7 @@
     </Modal>
     <GoogleAnalytics v-if="cookies" />
     <CookiesBanner v-if="cookies === null" @close="cookies = $event" />
+    <AboutModal v-if="showAbout" @close="showAbout = false" />
   </main>
 </template>
 <script>
@@ -155,9 +157,11 @@ import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
 import CountDown from "@/components/CountDown.vue";
 import IconStats from "@/components/icons/IconStats.vue";
+import IconSupport from "@/components/icons/IconSupport.vue";
 import InstructionsModal from "@/components/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
 import { UAExplorer } from "@/utils/uaexplorer.js";
+import AboutModal from "@/components/AboutModal/AboutModal.vue";
 
 export default {
   name: "HomeView",
@@ -166,8 +170,10 @@ export default {
     Modal,
     Button,
     ProgressBar,
+    AboutModal,
     CountDown,
     IconStats,
+    IconSupport,
     InstructionsModal,
     GoogleAnalytics,
     CookiesBanner,
@@ -190,6 +196,7 @@ export default {
       tries: [],
       correctMap: [],
       showHelp: false,
+      showAbout: false,
       endGame: false,
       showEndGame: false,
       showStats: false,

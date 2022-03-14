@@ -3326,4 +3326,12 @@ export default [
   "canta",
   "vivia",
   "cante",
+  "atrai",
+  "obvir",
+  "vagir",
+  "acuar",
+  "pifar",
+  "rajar",
+  "zunir",
+  "rugar",
 ].map((i) => latenize(i).toUpperCase());
