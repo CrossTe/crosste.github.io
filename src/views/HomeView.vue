@@ -16,26 +16,15 @@
         <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
         <div class="c-input c-input__label">1</div>
       </div>
-      <div class="c-input-group">
+      <div class="c-input-group" v-for="j in 2" :key="j">
         <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
         <input
           readonly
-          :id="`i-0`"
-          :ref="`i-0`"
+          :id="`i-${j - 1}`"
+          :ref="`i-${j - 1}`"
           class="c-input c-input--visible"
-          @click="putFocus(0)"
-          :class="getStatusColor(0, 0)"
-        />
-      </div>
-      <div class="c-input-group">
-        <div v-for="i in 2" :key="i" class="c-input c-input--hide" />
-        <input
-          readonly
-          :id="`i-1`"
-          :ref="`i-1`"
-          class="c-input c-input--visible"
-          @click="putFocus(1)"
-          :class="getStatusColor(0, 1)"
+          @click="putFocus(j - 1)"
+          :class="getStatusColor(0, j - 1)"
         />
       </div>
       <div class="c-input-group">
@@ -414,7 +403,7 @@ export default {
             this.$toast.success("Resultado copiado!");
           })
           .catch(() => {
-            this.$toast.erro("Não conseguimos copiar!");
+            this.$toast.error("Não conseguimos copiar!");
           });
       }
     },
@@ -667,10 +656,10 @@ export default {
       if (invalids.length) {
         const phrase =
           invalids.length === 1
-            ? `A palavra ${invalids[0]} é inválida!`
+            ? `Não conheço a palavra ${invalids[0]}!`
             : invalids.length === 2
-            ? `As palavras ${invalids.join(" e ")} são inválidas!`
-            : `As palavras ${invalids[0]}, ${invalids[1]} e ${invalids[2]} são inválidas!`;
+            ? `Não conheço as palavras ${invalids.join(" e ")}!`
+            : `Não conheço as palavras ${invalids[0]}, ${invalids[1]} e ${invalids[2]}!`;
         this.$toast.error(phrase);
         return;
       }
