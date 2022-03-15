@@ -302,7 +302,9 @@ export default {
       return status;
     },
     winsPercentage() {
-      return ((this.stats.wins || 0) * 100) / (this.stats.games || 1);
+      return Math.ceil(
+        ((this.stats.wins || 0) * 100) / (this.stats.games || 1)
+      );
     },
   },
   created() {
