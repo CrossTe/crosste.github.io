@@ -902,28 +902,20 @@ export default {
         cross = JSON.parse(raw);
       }
 
-      if (this.endGame) {
+      if (this.endGame && this.currDay === this.todayDay) {
         const stats = {
-          wins:
-            this.won && this.currDay === this.todayDay
-              ? (parseInt(cross?.stats?.wins) || 0) + 1
-              : parseInt(cross?.stats?.wins) || 0,
+          wins: this.won
+            ? (parseInt(cross?.stats?.wins) || 0) + 1
+            : parseInt(cross?.stats?.wins) || 0,
           history: this.won
             ? {
                 ...(cross?.stats?.history || {}),
                 [this.tries.length]:
-                  (cross?.stats?.history?.[this.tries.length] || 0) +
-                  (this.currDay === this.todayDay)
-                    ? 1
-                    : 0,
+                  (cross?.stats?.history?.[this.tries.length] || 0) + 1,
               }
             : {
                 ...(cross?.stats?.history || {}),
-                [9]:
-                  (cross?.stats?.history?.[9] || 0) +
-                  (this.currDay === this.todayDay)
-                    ? 1
-                    : 0,
+                [9]: (cross?.stats?.history?.[9] || 0) + 1,
               },
         };
         this.stats = stats;
