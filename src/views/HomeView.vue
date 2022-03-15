@@ -450,7 +450,6 @@ export default {
       this.showStats = false;
     },
     getShareText() {
-      const ua = UAExplorer(navigator.userAgent);
       const numberEmojis = [
         "0️⃣",
         "1️⃣",
@@ -506,6 +505,8 @@ export default {
         });
     },
     share() {
+      const ua = UAExplorer(navigator.userAgent);
+
       const title = `Joguei CrossTe #${this.currDay}`;
 
       if (navigator.share && ua.browser !== "Firefox") {
