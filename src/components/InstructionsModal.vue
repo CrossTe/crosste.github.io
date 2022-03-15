@@ -39,12 +39,3 @@
     <p><b>Acentuação e cedilha não são considerados!</b></p>
   </Modal>
 </template>
-<script>
-import Modal from "@/components/Modal/Modal.vue";
-
-export default {
-  components: {
-    Modal,
-  },
-};
-</script>

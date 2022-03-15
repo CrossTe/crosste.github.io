@@ -40,8 +40,6 @@
   </teleport>
 </template>
 <script>
-import Button from "../Button/Button.vue";
-import IconX from "../icons/IconX.vue";
 let firstFocusableElement;
 let lastFocusableElement;
 const firstFocusableElementRule = (e) => {
@@ -58,7 +56,6 @@ const lastFocusableElementRule = (e) => {
   }
 };
 export default {
-  components: { Button, IconX },
   props: {
     title: {
       type: String,

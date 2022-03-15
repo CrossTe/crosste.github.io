@@ -1,16 +1,55 @@
 <template>
   <main>
     <header class="c-header">
-      <div>
-        <Button @click="showHelp = true">?</Button>
+      <div style="display: flex; gap: 4px">
+        <DropdownGlobal
+          ref="calendar"
+          hide-indicator
+          :change-name-on-select="false"
+        >
+          <SvgIcon name="Calendar" size="18" />
+          <template v-slot:content>
+            <div style="padding: 4px; display: flex; gap: 4px">
+              <Button @click="skipBack" :disabled="currDay === 1">
+                <SvgIcon name="SkipBack" size="18" />
+              </Button>
+              <Button @click="goToToday">
+                <SvgIcon name="Target" size="18" />
+              </Button>
+              <Button @click="skipForward" :disabled="currDay === todayDay">
+                <SvgIcon name="SkipForward" size="18" />
+              </Button>
+            </div>
+          </template>
+        </DropdownGlobal>
+        <Button @click="showHelp = true">
+          <SvgIcon name="Help" size="18" />
+        </Button>
       </div>
       CrossTe #{{ currDay }}
       <CountDown v-show="false" @timeout="reload" />
       <div style="display: flex; gap: 4px">
-        <Button @click="showAbout = true"><IconSupport /></Button>
-        <Button @click="showStats = true"><IconStats /></Button>
+        <Button @click="showAbout = true">
+          <SvgIcon name="Support" size="18" />
+        </Button>
+        <Button @click="showStats = true">
+          <SvgIcon name="Stats" size="18" />
+        </Button>
       </div>
     </header>
+    <p
+      v-if="currDay !== todayDay"
+      class="c-input--correct"
+      style="
+        margin: 4px 8px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        text-align: center;
+        color: #fff;
+      "
+    >
+      Visitando o passado! Os resultados não ficarão salvos.
+    </p>
 
     <div class="c-board">
       <div class="c-input-group">
@@ -125,7 +164,11 @@
         <p>{{ word1 }} - {{ word2 }} - {{ word3 }}</p>
       </div>
       <div v-if="endGame && won">
-        <p>Você ganhou hoje! 🎉</p>
+        <p v-if="currDay === todayDay">Você ganhou hoje! 🎉</p>
+        <p v-if="currDay !== todayDay">
+          Você acertou essa, mas não vai contar no progresso, porque já passou!
+          🎉
+        </p>
       </div>
       <div
         style="
@@ -139,7 +182,10 @@
         <div style="font-size: 11px; text-align: center">
           Próximo jogo em: <CountDown />
         </div>
-        <Button v-if="endGame" @click="share"> Compartilhar </Button>
+        <div v-if="endGame" style="display: grid; grid-gap: 4px">
+          <Button @click="copy"> Copiar resultado </Button>
+          <Button @click="share"> Compartilhar </Button>
+        </div>
       </div>
     </Modal>
     <GoogleAnalytics v-if="cookies" />
@@ -150,30 +196,25 @@
 <script>
 import words from "@/data/words.js";
 import Keyboard from "@/components/Keyboard.vue";
-import Modal from "@/components/Modal/Modal.vue";
-import Button from "@/components/Button/Button.vue";
+
 import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
 import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
 import CountDown from "@/components/CountDown.vue";
-import IconStats from "@/components/icons/IconStats.vue";
-import IconSupport from "@/components/icons/IconSupport.vue";
+
 import InstructionsModal from "@/components/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
 import { UAExplorer } from "@/utils/uaexplorer.js";
 import AboutModal from "@/components/AboutModal/AboutModal.vue";
+import { subDays, addDays } from "date-fns";
 
 export default {
   name: "HomeView",
   components: {
     Keyboard,
-    Modal,
-    Button,
     ProgressBar,
     AboutModal,
     CountDown,
-    IconStats,
-    IconSupport,
     InstructionsModal,
     GoogleAnalytics,
     CookiesBanner,
@@ -203,10 +244,11 @@ export default {
       startDay: 0,
       stats: { games: 0, history: {}, wins: 0 },
       cookies: null,
+      inUseDate: new Date(),
     };
   },
   computed: {
-    currDay() {
+    todayDay() {
       const date1 = new Date("03/11/2022");
       const date2 = new Date();
 
@@ -215,20 +257,30 @@ export default {
       // To calculate the no. of days between two dates
       return Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
     },
+    currDay() {
+      const date1 = new Date("03/11/2022");
+      const date2 = new Date(this.inUseDate);
+
+      // To calculate the time difference of two dates
+      const Difference_In_Time = date2.getTime() - date1.getTime();
+      // To calculate the no. of days between two dates
+      const result = Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
+      return result > this.todayDay ? this.todayDay : result;
+    },
     word2() {
-      return words[chooseAnIndex(words.length)];
+      return words[chooseAnIndex(words.length, this.inUseDate)];
     },
     first() {
       return words.filter((i) => i[2] === this.word2[1]);
     },
     word1() {
-      return this.first[chooseAnIndex(this.first.length)];
+      return this.first[chooseAnIndex(this.first.length, this.inUseDate)];
     },
     third() {
       return words.filter((i) => i[0] === this.word1[4]);
     },
     word3() {
-      return this.third[chooseAnIndex(this.third.length)];
+      return this.third[chooseAnIndex(this.third.length, this.inUseDate)];
     },
     won() {
       let status = true;
@@ -255,12 +307,60 @@ export default {
   },
   created() {
     console.log("Um salve para o grupo Praia & Hipocrisia!");
-    this.create();
+    this.todayNumber = this.create();
   },
   mounted() {
     this.mount();
   },
   methods: {
+    resetShots() {
+      [...document.getElementsByClassName("c-input--visible")].forEach(
+        (i) => (i.value = "")
+      );
+
+      if (this.currDay === this.todayDay) {
+        this.create();
+        this.mount();
+      } else {
+        this.wordOne = {
+          letters: [],
+        };
+        this.wordTwo = {
+          letters: [],
+        };
+        this.wordThree = {
+          letters: [],
+        };
+        this.correctMap = [];
+        this.keyboard = this.initializeKeyboard();
+        this.endGame = false;
+        this.tries = [];
+      }
+    },
+    goToToday() {
+      this.inUseDate = new Date();
+      this.$refs.calendar.hide();
+      this.resetShots();
+      this.updateNextIndex(-1);
+      this.putFocus(this.nextIndex);
+      this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+    },
+    skipBack() {
+      this.inUseDate = subDays(new Date(this.inUseDate), 1);
+      this.$refs.calendar.hide();
+      this.resetShots();
+      this.updateNextIndex(-1);
+      this.putFocus(this.nextIndex);
+      this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+    },
+    skipForward() {
+      this.inUseDate = addDays(new Date(this.inUseDate), 1);
+      this.$refs.calendar.hide();
+      this.resetShots();
+      this.updateNextIndex(-1);
+      this.putFocus(this.nextIndex);
+      this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+    },
     getStatusColor(line, column) {
       return {
         "c-input--correct": this.isCorrect(line, column),
@@ -275,6 +375,7 @@ export default {
     mount() {
       this.startDay = this.currDay;
       if (this.correctMap.length) {
+        console.log("opsssss");
         this.correctMap.forEach((item, index) => {
           item.forEach((letter, i) => {
             let position = index === 0 ? i : index === 1 ? i + 5 : i + 10;
@@ -337,8 +438,9 @@ export default {
             games: (cross?.stats?.games || 0) + 1,
           },
         };
-
-        localStorage.setItem("cross", JSON.stringify(cross));
+        if (this.currDay === this.todayDay) {
+          localStorage.setItem("cross", JSON.stringify(cross));
+        }
       }
       this.stats = cross?.stats || this.stats;
     },
@@ -346,7 +448,7 @@ export default {
       this.showEndGame = false;
       this.showStats = false;
     },
-    share() {
+    getShareText() {
       const ua = UAExplorer(navigator.userAgent);
       const numberEmojis = [
         "0️⃣",
@@ -387,31 +489,36 @@ export default {
         )
         .join("\n");
 
-      const title = `Joguei CrossTe #${this.currDay}`;
-      const text = this.won
+      return this.won
         ? `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\nVenci com ${
             this.tries?.length
           } ${this.tries?.length === 1 ? "tentativa" : "tentativas"}!`
         : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!`;
+    },
+    copy() {
+      this.$copyText(this.getShareText())
+        .then(() => {
+          this.$toast.success("Resultado copiado!");
+        })
+        .catch(() => {
+          this.$toast.error("Não conseguimos copiar!");
+        });
+    },
+    share() {
+      const title = `Joguei CrossTe #${this.currDay}`;
 
       if (navigator.share && ua.browser !== "Firefox") {
         navigator
           .share({
             title,
-            text,
+            text: this.getShareText(),
           })
           .then(() => {
             console.log("Thanks for sharing!");
           })
           .catch(console.error);
       } else {
-        this.$copyText(text)
-          .then(() => {
-            this.$toast.success("Resultado copiado!");
-          })
-          .catch(() => {
-            this.$toast.error("Não conseguimos copiar!");
-          });
+        this.copy();
       }
     },
     initializeKeyboard() {
@@ -554,16 +661,23 @@ export default {
         this.showEndGame = true;
         return;
       }
+      this.$nextTick(() => {
+        let inputs = [...document.getElementsByClassName("c-input--focus")];
+        if (!inputs.length) {
+          this.updateNextIndex(-1);
+          this.putFocus(this.nextIndex);
+          inputs = [...document.getElementsByClassName("c-input--focus")];
+        }
+        const place = inputs[0];
 
-      const place = document.getElementsByClassName("c-input--focus")[0];
-
-      if (key === "DELETE")
-        return this.handleDelete(parseInt(place.id.replace("i-", "")));
-      if (key === "ENTER") return this.handleSubmit();
-
-      this.keyup(parseInt(place.id.replace("i-", "")), {
-        data: key,
-        inputType: "insertText",
+        if (key === "DELETE")
+          return this.handleDelete(parseInt(place.id.replace("i-", "")));
+        if (key === "ENTER") return this.handleSubmit();
+        console.log("PLACE", place);
+        this.keyup(parseInt(place.id.replace("i-", "")), {
+          data: key,
+          inputType: "insertText",
+        });
       });
     },
     handleDelete(i) {
@@ -627,6 +741,7 @@ export default {
       }
     },
     handleSubmit() {
+      console.log(this.correctMap);
       if (this.endGame) {
         this.showEndGame = true;
         return;
@@ -789,18 +904,26 @@ export default {
 
       if (this.endGame) {
         const stats = {
-          wins: this.won
-            ? (parseInt(cross?.stats?.wins) || 0) + 1
-            : parseInt(cross?.stats?.wins) || 0,
+          wins:
+            this.won && this.currDay === this.todayDay
+              ? (parseInt(cross?.stats?.wins) || 0) + 1
+              : parseInt(cross?.stats?.wins) || 0,
           history: this.won
             ? {
                 ...(cross?.stats?.history || {}),
                 [this.tries.length]:
-                  (cross?.stats?.history?.[this.tries.length] || 0) + 1,
+                  (cross?.stats?.history?.[this.tries.length] || 0) +
+                  (this.currDay === this.todayDay)
+                    ? 1
+                    : 0,
               }
             : {
                 ...(cross?.stats?.history || {}),
-                [9]: (cross?.stats?.history?.[9] || 0) + 1,
+                [9]:
+                  (cross?.stats?.history?.[9] || 0) +
+                  (this.currDay === this.todayDay)
+                    ? 1
+                    : 0,
               },
         };
         this.stats = stats;
@@ -813,14 +936,15 @@ export default {
         };
       }
 
-      localStorage.setItem(
-        "cross",
-        JSON.stringify({
-          ...cross,
-          state,
-        })
-      );
-
+      if (this.currDay === this.todayDay) {
+        localStorage.setItem(
+          "cross",
+          JSON.stringify({
+            ...cross,
+            state,
+          })
+        );
+      }
       this.stats = cross?.stats || this.stats;
       this.putFocus(this.nextIndex);
     },

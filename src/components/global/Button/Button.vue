@@ -38,11 +38,7 @@
   </router-link>
 </template>
 <script>
-import PulseLine from "../PulseLine/PulseLine.vue";
 export default {
-  components: {
-    PulseLine,
-  },
   props: {
     sprawled: {
       type: Boolean,

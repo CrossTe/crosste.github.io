@@ -19,3 +19,15 @@ export function latenize(str) {
 
   return str;
 }
+
+export function formatDate(date, format) {
+  const map = {
+    mm: date.getMonth() + 1,
+    dd: date.getDate(),
+    yyyy: date.getFullYear(),
+  };
+  console.log(map);
+  return (
+    format.replace(/mm|dd|yyyy/gi, (matched) => map[matched]) + " 00:01:00"
+  );
+}

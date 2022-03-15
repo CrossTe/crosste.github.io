@@ -47,14 +47,11 @@
   </BottomMessage>
 </template>
 <script>
-import AddSpace from "@/components/AddSpace/AddSpace.vue";
 import BottomMessage from "@/components/BottomMessage/BottomMessage.vue";
-import Button from "@/components/Button/Button.vue";
+
 export default {
   name: "CookiesBanner",
   components: {
-    AddSpace,
-    Button,
     BottomMessage,
   },
   methods: {
