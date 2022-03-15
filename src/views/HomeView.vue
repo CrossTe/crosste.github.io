@@ -375,7 +375,6 @@ export default {
     mount() {
       this.startDay = this.currDay;
       if (this.correctMap.length) {
-        console.log("opsssss");
         this.correctMap.forEach((item, index) => {
           item.forEach((letter, i) => {
             let position = index === 0 ? i : index === 1 ? i + 5 : i + 10;
@@ -673,7 +672,7 @@ export default {
         if (key === "DELETE")
           return this.handleDelete(parseInt(place.id.replace("i-", "")));
         if (key === "ENTER") return this.handleSubmit();
-        console.log("PLACE", place);
+
         this.keyup(parseInt(place.id.replace("i-", "")), {
           data: key,
           inputType: "insertText",
@@ -741,7 +740,6 @@ export default {
       }
     },
     handleSubmit() {
-      console.log(this.correctMap);
       if (this.endGame) {
         this.showEndGame = true;
         return;
