@@ -1,0 +1,28 @@
+.c-key
+  cursor pointer
+  user-select none
+  color #fff
+  background-color #686868
+  width 40px
+  height 60px
+  border-radius 5px
+  display grid
+  place-items center
+  font-weight bold
+  &:hover
+    opacity 0.75
+  @media (max-width 600px)
+      width 35px
+  &--wide
+    width 80px
+    @media (max-width 600px)
+      width 60px
+      font-size 1rem
+  &--absent
+    background-color #000
+  &--present
+    background-color #d3ad69
+  &--correct
+    background-color #3aa394
+  &--break
+    flex-basis 100%

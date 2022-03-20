@@ -116,7 +116,7 @@
     </div>
     <div class="c-keyboard">
       <div class="c-past" v-for="t in tries" :key="t" v-html="t" />
-      <Keyboard :keyboard="keyboard" @keyboard="handleKey" />
+      <Keyboard ref="keyboard" @key-pressed="handleKey" />
     </div>
 
     <InstructionsModal
@@ -195,14 +195,14 @@
 </template>
 <script>
 import words from "@/data/words.js";
-import Keyboard from "@/components/Keyboard.vue";
+import Keyboard from "@/components/Keyboard/Keyboard.vue";
 
 import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
 import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
-import CountDown from "@/components/CountDown.vue";
+import CountDown from "@/components/CountDown/CountDown.vue";
 
-import InstructionsModal from "@/components/InstructionsModal.vue";
+import InstructionsModal from "@/components/InstructionsModal/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
 import { UAExplorer } from "@/utils/uaexplorer.js";
 import AboutModal from "@/components/AboutModal/AboutModal.vue";
@@ -233,7 +233,7 @@ export default {
       wordThree: {
         letters: [],
       },
-      keyboard: this.initializeKeyboard(),
+      keyboard: null,
       tries: [],
       correctMap: [],
       showHelp: false,
@@ -334,34 +334,29 @@ export default {
           letters: [],
         };
         this.correctMap = [];
-        this.keyboard = this.initializeKeyboard();
+        this.$refs.keyboard.reset();
         this.endGame = false;
         this.tries = [];
       }
     },
-    goToToday() {
-      this.inUseDate = new Date();
+    changeDay() {
       this.$refs.calendar.hide();
       this.resetShots();
       this.updateNextIndex(-1);
       this.putFocus(this.nextIndex);
       this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+    },
+    goToToday() {
+      this.inUseDate = new Date();
+      this.changeDay();
     },
     skipBack() {
       this.inUseDate = subDays(new Date(this.inUseDate), 1);
-      this.$refs.calendar.hide();
-      this.resetShots();
-      this.updateNextIndex(-1);
-      this.putFocus(this.nextIndex);
-      this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+      this.changeDay();
     },
     skipForward() {
       this.inUseDate = addDays(new Date(this.inUseDate), 1);
-      this.$refs.calendar.hide();
-      this.resetShots();
-      this.updateNextIndex(-1);
-      this.putFocus(this.nextIndex);
-      this.$toast.success("Você foi para o CrossTe #" + this.currDay);
+      this.changeDay();
     },
     getStatusColor(line, column) {
       return {
@@ -376,6 +371,9 @@ export default {
     },
     mount() {
       this.startDay = this.currDay;
+      if (this.keyboard) {
+        this.$refs.keyboard.keyboard = this.keyboard;
+      }
       if (this.correctMap.length) {
         this.correctMap.forEach((item, index) => {
           item.forEach((letter, i) => {
@@ -408,7 +406,7 @@ export default {
         // Get currennt Game details
         if (cross.state.day === this.currDay) {
           this.tries = cross.state?.tries || [];
-          this.keyboard = cross.state?.keyboard || this.initializeKeyboard();
+          this.keyboard = cross.state?.keyboard || null;
           this.correctMap = cross.state?.correctMap || [];
           this.wordOne = cross.state?.wordOne || {
             letters: [],
@@ -522,14 +520,6 @@ export default {
       } else {
         this.copy();
       }
-    },
-    initializeKeyboard() {
-      const keys = "QWERTYUIOPASDFGHJKL§ZXCVBNM".split("").map((key) => {
-        if (key === "§") return { key: "DELETE" };
-        return { key, evaluation: null };
-      });
-      keys.push({ key: "ENTER" });
-      return keys;
     },
     putFocus(index) {
       [...document.getElementsByClassName("c-input--visible")].forEach((i) =>
@@ -801,7 +791,7 @@ export default {
 
       // Updates keyboard
       insertedLetters.forEach((x) => {
-        this.keyboard.find(
+        this.$refs.keyboard.keyboard.find(
           (i) =>
             i.key === x &&
             (i.evaluation = !validLetters.includes(x) ? "absent" : "present")
@@ -888,7 +878,7 @@ export default {
       const state = {
         day: this.startDay,
         tries: this.tries,
-        keyboard: this.keyboard,
+        keyboard: this.$refs.keyboard.keyboard,
         correctMap: this.correctMap,
         wordOne: this.wordOne,
         wordTwo: this.wordTwo,
