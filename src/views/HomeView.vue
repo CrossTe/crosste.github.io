@@ -207,6 +207,7 @@ import { chooseAnIndex } from "@/utils/array.js";
 import { UAExplorer } from "@/utils/uaexplorer.js";
 import AboutModal from "@/components/AboutModal/AboutModal.vue";
 import { subDays, addDays } from "date-fns";
+import { getDayHash } from "@/utils/date.js";
 
 export default {
   name: "HomeView",
@@ -249,22 +250,10 @@ export default {
   },
   computed: {
     todayDay() {
-      const date1 = new Date("03/11/2022");
-      const date2 = new Date();
-
-      // To calculate the time difference of two dates
-      const Difference_In_Time = date2.getTime() - date1.getTime();
-      // To calculate the no. of days between two dates
-      return Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
+      return getDayHash();
     },
     currDay() {
-      const date1 = new Date("03/11/2022");
-      const date2 = new Date(this.inUseDate);
-
-      // To calculate the time difference of two dates
-      const Difference_In_Time = date2.getTime() - date1.getTime();
-      // To calculate the no. of days between two dates
-      const result = Math.ceil(Difference_In_Time / (1000 * 3600 * 24));
+      const result = getDayHash(this.inUseDate);
       return result > this.todayDay ? this.todayDay : result;
     },
     word2() {
@@ -490,8 +479,10 @@ export default {
       return this.won
         ? `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\nVenci com ${
             this.tries?.length
-          } ${this.tries?.length === 1 ? "tentativa" : "tentativas"}!`
-        : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!`;
+          } ${
+            this.tries?.length === 1 ? "tentativa" : "tentativas"
+          }!\n@crossTeGame`
+        : `Joguei crosste.github.io #${this.currDay}\n\n${art}\n\n Perdi, mas você pode ganhar!\n@crossTeGame`;
     },
     copy() {
       this.$copyText(this.getShareText())
