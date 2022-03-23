@@ -3334,4 +3334,8 @@ export default [
   "rajar",
   "zunir",
   "rugar",
+  "adiou",
+  "afiou",
+  "armou",
+  "aliou",
 ].map((i) => latenize(i).toUpperCase());
