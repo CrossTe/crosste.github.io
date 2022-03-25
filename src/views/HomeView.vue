@@ -185,32 +185,34 @@
   </main>
 </template>
 <script>
-import words from "@/data/words.js";
-import Keyboard from "@/components/Keyboard/Keyboard.vue";
-
-import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
-import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
+import InstructionsModal from "@/components/InstructionsModal/InstructionsModal.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
+import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
+import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
+import AboutModal from "@/components/AboutModal/AboutModal.vue";
 import CountDown from "@/components/CountDown/CountDown.vue";
 import GameTries from "@/components/GameTries/GameTries.vue";
-import InstructionsModal from "@/components/InstructionsModal/InstructionsModal.vue";
-import { chooseAnIndex } from "@/utils/array.js";
+import Keyboard from "@/components/Keyboard/Keyboard.vue";
+
 import { UAExplorer } from "@/utils/uaexplorer.js";
-import AboutModal from "@/components/AboutModal/AboutModal.vue";
-import { subDays, addDays } from "date-fns";
+import { chooseAnIndex } from "@/utils/array.js";
 import { getDayHash } from "@/utils/date.js";
+
+import { subDays, addDays } from "date-fns";
+
+import words from "@/data/words.js";
 
 export default {
   name: "HomeView",
   components: {
-    Keyboard,
+    InstructionsModal,
+    GoogleAnalytics,
+    CookiesBanner,
     ProgressBar,
     AboutModal,
     CountDown,
     GameTries,
-    InstructionsModal,
-    GoogleAnalytics,
-    CookiesBanner,
+    Keyboard,
   },
   data() {
     return {
