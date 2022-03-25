@@ -37,19 +37,10 @@
         </Button>
       </div>
     </header>
-    <p
-      v-if="currDay !== todayDay"
-      class="c-input--correct"
-      style="
-        margin: 4px 8px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        text-align: center;
-        color: #fff;
-      "
-    >
+
+    <MessageAlert v-if="currDay !== todayDay">
       Visitando o passado! Os resultados não ficarão salvos.
-    </p>
+    </MessageAlert>
 
     <div class="c-board">
       <div class="c-input-group">
@@ -115,7 +106,7 @@
       </div>
     </div>
     <div class="c-keyboard">
-      <div class="c-past" v-for="t in tries" :key="t" v-html="t" />
+      <GameTries :tries="tries" />
       <Keyboard ref="keyboard" @key-pressed="handleKey" />
     </div>
 
@@ -201,7 +192,7 @@ import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
 import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
 import CountDown from "@/components/CountDown/CountDown.vue";
-
+import GameTries from "@/components/GameTries/GameTries.vue";
 import InstructionsModal from "@/components/InstructionsModal/InstructionsModal.vue";
 import { chooseAnIndex } from "@/utils/array.js";
 import { UAExplorer } from "@/utils/uaexplorer.js";
@@ -216,6 +207,7 @@ export default {
     ProgressBar,
     AboutModal,
     CountDown,
+    GameTries,
     InstructionsModal,
     GoogleAnalytics,
     CookiesBanner,
@@ -1057,16 +1049,6 @@ ul > li:before {
   color: #fff;
   font-size: 10px;
   text-align: center;
-}
-
-.c-past {
-  display: grid;
-  grid-gap: 1px;
-  grid-template-columns: repeat(18, 1fr);
-  height: min-content;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
 }
 
 .c-input--absent {
