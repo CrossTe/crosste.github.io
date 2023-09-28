@@ -105,80 +105,28 @@
         />
       </div>
     </div>
-    <div class="c-keyboard">
+    <div>
       <GameTries :tries="tries" />
       <Keyboard ref="keyboard" @key-pressed="handleKey" />
     </div>
-
     <InstructionsModal
       v-if="showHelp"
       @close="showHelp = false"
       title="Instruções"
     />
 
-    <Modal
+    <EndGameModal
       v-if="showEndGame || showStats"
-      title="Progresso"
+      :won="won"
+      :stats="stats"
+      :curr-day="currDay"
+      :today-day="todayDay"
+      :end-game="endGame"
+      :words="[word1, word2, word3]"
+      @copy="copy"
+      @share="share"
       @close="closeStats"
-    >
-      <div class="c-result__header">
-        <div class="c-status">
-          <span class="c-status__number">{{ stats.games }}</span>
-          <span>Jogos</span>
-        </div>
-        <div class="c-status">
-          <span class="c-status__number">{{ winsPercentage }}%</span>
-          <span>de vitórias</span>
-        </div>
-      </div>
-      <p style="margin-top: 8px; text-align: center">
-        Distribuição de tentativas
-      </p>
-      <ol>
-        <li v-for="i in 8" :key="i">
-          <ProgressBar
-            :value="stats?.history?.[i] || 0"
-            :total="stats.games || 0"
-          />
-        </li>
-      </ol>
-      <ul>
-        <li>
-          <ProgressBar
-            :value="stats?.history?.[9] || 0"
-            :total="stats.games || 0"
-          />
-        </li>
-      </ul>
-      <div v-if="endGame && !won">
-        <p>Você perdeu! 😩 As palavras eram:</p>
-        <p>{{ word1 }} - {{ word2 }} - {{ word3 }}</p>
-      </div>
-      <div v-if="endGame && won">
-        <p v-if="currDay === todayDay">Você ganhou hoje! 🎉</p>
-        <p v-if="currDay !== todayDay">
-          Você acertou essa, mas não vai contar no progresso, porque já passou!
-          🎉
-        </p>
-      </div>
-      <div
-        style="
-          margin-top: 16px;
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          justify-content: space-between;
-        "
-      >
-        <div style="font-size: 11px; text-align: center">
-          Próximo jogo em: <CountDown />
-        </div>
-        <div v-if="endGame" style="display: grid; grid-gap: 4px">
-          <Button @click="copy"> Copiar resultado </Button>
-          <Button @click="share"> Compartilhar </Button>
-        </div>
-      </div>
-    </Modal>
+    />
     <GoogleAnalytics v-if="cookies" />
     <CookiesBanner v-if="cookies === null" @close="cookies = $event" />
     <AboutModal v-if="showAbout" @close="showAbout = false" />
@@ -188,7 +136,7 @@
 import InstructionsModal from "@/components/InstructionsModal/InstructionsModal.vue";
 import GoogleAnalytics from "@/components/GoogleAnalytics/GoogleAnalytics.vue";
 import CookiesBanner from "@/components/CookiesBanner/CookiesBanner.vue";
-import ProgressBar from "@/components/ProgressBar/ProgressBar.vue";
+import EndGameModal from "@/components/EndGameModal/EndGameModal.vue";
 import AboutModal from "@/components/AboutModal/AboutModal.vue";
 import CountDown from "@/components/CountDown/CountDown.vue";
 import GameTries from "@/components/GameTries/GameTries.vue";
@@ -208,7 +156,7 @@ export default {
     InstructionsModal,
     GoogleAnalytics,
     CookiesBanner,
-    ProgressBar,
+    EndGameModal,
     AboutModal,
     CountDown,
     GameTries,
@@ -981,41 +929,7 @@ main {
 .c-input--correct {
   background-color: #3aa394;
 }
-.c-keyboard {
-  bottom: 0;
-  width: 100%;
-  left: 0;
-  margin-bottom: 60px;
-  padding: 0 4px;
-}
-.c-keyboard__line {
-  display: grid;
-  width: 100%;
-  grid-gap: 4px;
-  grid-template-columns: repeat(11, 1fr);
-  margin-bottom: 4px;
-  align-items: center;
-  align-content: center;
-}
-.c-keyboard__button {
-  height: 66px;
-  font-weight: bold;
-  font-size: 24px;
-}
-.c-status {
-  font-size: 11px;
-  text-align: center;
-  display: grid;
-  grid-template-columns: 1fr;
-}
-.c-status__number {
-  font-size: 16px;
-  font-weight: bold;
-}
-.c-result__header {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-}
+
 ol {
   padding: 0;
   padding-left: 16px;
